@@ -22,7 +22,7 @@ export function formatDate(value?: string | null, withTime = false) {
   if (!value) return "—";
   const date = new Date(value.length === 10 ? `${value}T00:00:00` : value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("zh-CN", { timeZone: "Asia/Hong_Kong", year: "numeric", month: "short", day: "numeric", ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}) }).format(date);
+  const timeZone = typeof document === "undefined" ? "Asia/Hong_Kong" : document.querySelector<HTMLElement>("[data-timezone]")?.dataset.timezone ?? "Asia/Hong_Kong";\n  return new Intl.DateTimeFormat("zh-CN", { timeZone, year: "numeric", month: "short", day: "numeric", ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}) }).format(date);
 }
 
 export function formatBytes(value: number) {
