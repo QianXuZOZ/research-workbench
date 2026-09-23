@@ -1,5 +1,5 @@
 export type FieldConfig = { key: string; label: string; type?: "text" | "textarea" | "select" | "date" | "number"; required?: boolean; placeholder?: string; options?: [string, string][]; wide?: boolean };
-export type ModuleConfig = { type: "projects" | "papers" | "patents" | "growth"; title: string; singular: string; description: string; addLabel: string; emptyTitle: string; emptyDescription: string; fields: FieldConfig[]; columns: { key: string; label: string }[]; statusOptions: [string, string][] };
+export type ModuleConfig = { type: "projects" | "papers" | "literature" | "patents" | "growth"; title: string; singular: string; description: string; addLabel: string; emptyTitle: string; emptyDescription: string; fields: FieldConfig[]; columns: { key: string; label: string }[]; statusOptions: [string, string][] };
 
 export const modules: Record<string, ModuleConfig> = {
   projects: {
@@ -9,7 +9,7 @@ export const modules: Record<string, ModuleConfig> = {
     fields: [
       { key: "title", label: "项目名称", required: true, wide: true }, { key: "code", label: "项目编号" }, { key: "category", label: "项目类别", type: "select", options: [["纵向项目", "纵向项目"], ["横向项目", "横向项目"], ["校级项目", "校级项目"], ["内部研究", "内部研究"]] },
       { key: "role", label: "承担角色", type: "select", options: [["负责人", "负责人"], ["骨干", "骨干"], ["参与人", "参与人"], ["顾问", "顾问"]] }, { key: "status", label: "状态", type: "select", options: [["planning", "筹备"], ["active", "进行中"], ["paused", "暂停"], ["completed", "已结项"]] }, { key: "risk", label: "风险", type: "select", options: [["normal", "正常"], ["watch", "关注"], ["high", "高风险"]] },
-      { key: "startDate", label: "开始日期", type: "date" }, { key: "endDate", label: "截止日期", type: "date" }, { key: "progress", label: "完成进度 (%)", type: "number" }, { key: "funding", label: "经费（万元）", type: "number" },
+      { key: "startDate", label: "开始日期", type: "date" }, { key: "endDate", label: "截止日期", type: "date" }, { key: "completedAt", label: "结项日期", type: "date" }, { key: "progress", label: "完成进度 (%)", type: "number" }, { key: "funding", label: "经费（万元）", type: "number" },
       { key: "leader", label: "负责人" }, { key: "members", label: "项目成员", placeholder: "使用分号分隔" }, { key: "keywords", label: "研究方向标签", placeholder: "如：新能源并网；继电保护", wide: true }, { key: "summary", label: "项目摘要", type: "textarea", wide: true }, { key: "notes", label: "推进备注", type: "textarea", wide: true },
     ],
   },
@@ -22,6 +22,16 @@ export const modules: Record<string, ModuleConfig> = {
       { key: "venue", label: "期刊 / 会议" }, { key: "venueType", label: "类型", type: "select", options: [["journal", "期刊"], ["conference", "会议"], ["preprint", "预印本"], ["thesis", "学位论文"]] }, { key: "status", label: "投稿阶段", type: "select", options: [["idea", "选题"], ["drafting", "撰写"], ["submitted", "已投稿"], ["revision", "返修"], ["accepted", "已录用"], ["published", "已发表"], ["rejected", "退稿"]] },
       { key: "year", label: "年份", type: "number" }, { key: "doi", label: "DOI" }, { key: "journalQuartile", label: "JCR 分区" }, { key: "casQuartile", label: "中科院分区" }, { key: "impactFactor", label: "影响因子", type: "number" },
       { key: "submittedAt", label: "投稿日期", type: "date" }, { key: "acceptedAt", label: "录用日期", type: "date" }, { key: "publishedAt", label: "发表日期", type: "date" }, { key: "keywords", label: "关键词", wide: true }, { key: "abstract", label: "摘要", type: "textarea", wide: true }, { key: "notes", label: "备注", type: "textarea", wide: true },
+    ],
+  },
+  literature: {
+    type: "literature", title: "文献库", singular: "文献", description: "管理外部参考文献、阅读状态与研究笔记，与自己的论文成果分开统计。", addLabel: "新建文献", emptyTitle: "建立第一条文献记录", emptyDescription: "手动录入或导入 BibTeX，后续可关联项目、论文成果、任务与附件。",
+    statusOptions: [["unread", "待读"], ["reading", "在读"], ["read", "已读"]],
+    columns: [{ key: "title", label: "文献" }, { key: "status", label: "阅读状态" }, { key: "venue", label: "期刊 / 会议" }, { key: "year", label: "年份" }, { key: "doi", label: "DOI" }],
+    fields: [
+      { key: "title", label: "文献题目", required: true, wide: true }, { key: "authors", label: "作者", placeholder: "使用分号分隔", wide: true }, { key: "venue", label: "期刊 / 会议" },
+      { key: "venueType", label: "类型", type: "select", options: [["journal", "期刊"], ["conference", "会议"], ["preprint", "预印本"], ["book", "图书"], ["thesis", "学位论文"], ["other", "其他"]] }, { key: "status", label: "阅读状态", type: "select", options: [["unread", "待读"], ["reading", "在读"], ["read", "已读"]] },
+      { key: "year", label: "年份", type: "number" }, { key: "doi", label: "DOI" }, { key: "url", label: "链接", wide: true }, { key: "keywords", label: "关键词", wide: true }, { key: "abstract", label: "摘要", type: "textarea", wide: true }, { key: "notes", label: "阅读笔记", type: "textarea", wide: true },
     ],
   },
   patents: {
