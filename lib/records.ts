@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const recordTypes = ["projects", "papers", "patents", "growth"] as const;
+export const recordTypes = ["projects", "papers", "literature", "patents", "growth"] as const;
 export type RecordType = (typeof recordTypes)[number];
 
 const optionalText = z.string().trim().max(5000).nullable().optional();
@@ -22,6 +22,7 @@ export const recordSchemas = {
     status: z.enum(["planning", "active", "paused", "completed"]).default("planning"),
     startDate: optionalDate,
     endDate: optionalDate,
+    completedAt: optionalDate,
     funding: optionalNumber,
     leader: optionalText,
     members: optionalText,
@@ -46,6 +47,18 @@ export const recordSchemas = {
     impactFactor: optionalNumber,
     abstract: optionalText,
     bibtex: z.string().max(30000).nullable().optional(),
+  }),
+  literature: z.object({
+    ...base,
+    authors: optionalText,
+    venue: optionalText,
+    venueType: z.enum(["journal", "conference", "preprint", "book", "thesis", "other"]).default("journal"),
+    status: z.enum(["unread", "reading", "read"]).default("unread"),
+    year: z.coerce.number().int().min(1900).max(2200).nullable().optional(),
+    doi: z.string().trim().max(300).nullable().optional(),
+    url: z.string().trim().max(2000).nullable().optional(),
+    abstract: optionalText,
+    bibtex: z.string().max(100000).nullable().optional(),
   }),
   patents: z.object({
     ...base,
@@ -80,20 +93,23 @@ export const recordSchemas = {
 export const recordTables: Record<RecordType, string> = {
   projects: "projects",
   papers: "papers",
+  literature: "literature_items",
   patents: "patents",
   growth: "growth_items",
 };
 
 export const recordLabels: Record<RecordType, string> = {
   projects: "项目",
-  papers: "论文",
+  papers: "论文成果",
+  literature: "文献",
   patents: "专利",
   growth: "成长记录",
 };
 
 const columnMaps: Record<RecordType, Record<string, string>> = {
-  projects: { title: "title", code: "code", category: "category", role: "role", status: "status", startDate: "start_date", endDate: "end_date", funding: "funding", leader: "leader", members: "members", progress: "progress", risk: "risk", summary: "summary", notes: "notes", keywords: "keywords" },
+  projects: { title: "title", code: "code", category: "category", role: "role", status: "status", startDate: "start_date", endDate: "end_date", completedAt: "completed_at", funding: "funding", leader: "leader", members: "members", progress: "progress", risk: "risk", summary: "summary", notes: "notes", keywords: "keywords" },
   papers: { title: "title", authors: "authors", authorRole: "author_role", venue: "venue", venueType: "venue_type", status: "status", year: "year", submittedAt: "submitted_at", acceptedAt: "accepted_at", publishedAt: "published_at", doi: "doi", journalQuartile: "journal_quartile", casQuartile: "cas_quartile", impactFactor: "impact_factor", abstract: "abstract", keywords: "keywords", notes: "notes", bibtex: "bibtex" },
+  literature: { title: "title", authors: "authors", venue: "venue", venueType: "venue_type", status: "status", year: "year", doi: "doi", url: "url", abstract: "abstract", keywords: "keywords", notes: "notes", bibtex: "bibtex" },
   patents: { title: "title", patentType: "patent_type", status: "status", applicationNumber: "application_number", publicationNumber: "publication_number", inventors: "inventors", applicant: "applicant", agency: "agency", filedAt: "filed_at", publishedAt: "published_at", grantedAt: "granted_at", feeDueAt: "fee_due_at", abstract: "abstract", keywords: "keywords", notes: "notes" },
   growth: { title: "title", category: "category", status: "status", startedAt: "started_at", dueAt: "due_at", completedAt: "completed_at", targetValue: "target_value", currentValue: "current_value", unit: "unit", provider: "provider", evidence: "evidence", notes: "notes", keywords: "keywords" },
 };
