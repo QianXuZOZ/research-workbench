@@ -3,18 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Activity, Award, BookOpenText, BriefcaseBusiness, CalendarCheck2, ChevronRight, FileBadge2, GraduationCap, LayoutDashboard, LogOut, Menu, Moon, Search, Settings, Sun, X, Zap } from "lucide-react";
+import { Activity, Award, BookMarked, BookOpenText, BriefcaseBusiness, CalendarCheck2, ChevronRight, FileBadge2, GraduationCap, LayoutDashboard, LogOut, Menu, Moon, Search, Settings, Sun, X, Zap } from "lucide-react";
 import { apiFetch } from "@/lib/client-api";
 import { WebMcpTools } from "@/components/webmcp-tools";
 
 const nav = [
-  ["/dashboard", "驾驶舱", LayoutDashboard], ["/tasks", "任务中心", CalendarCheck2], ["/projects", "项目管理", BriefcaseBusiness], ["/papers", "论文管理", BookOpenText],
+  ["/dashboard", "驾驶舱", LayoutDashboard], ["/tasks", "任务中心", CalendarCheck2], ["/projects", "项目管理", BriefcaseBusiness], ["/papers", "论文成果", BookOpenText], ["/literature", "文献库", BookMarked],
   ["/patents", "专利管理", FileBadge2], ["/growth", "个人成长", GraduationCap], ["/promotion", "晋升管理", Award], ["/settings", "系统设置", Settings],
 ] as const;
 
-const entityPath: Record<string, string> = { projects: "projects", papers: "papers", patents: "patents", growth: "growth", tasks: "tasks" };
+const entityPath: Record<string, string> = { projects: "projects", papers: "papers", literature: "literature", patents: "patents", growth: "growth", tasks: "tasks" };
 
-export function AppShell({ children, email, displayName, csrf, mustChangePassword }: { children: React.ReactNode; email: string; displayName: string; csrf: string; mustChangePassword: boolean }) {
+export function AppShell({ children, email, displayName, csrf, mustChangePassword, timeZone }: { children: React.ReactNode; email: string; displayName: string; csrf: string; mustChangePassword: boolean; timeZone: string }) {
   const pathname = usePathname(); const router = useRouter(); const [mobileOpen, setMobileOpen] = useState(false); const [dark, setDark] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false); const [query, setQuery] = useState(""); const [results, setResults] = useState<{ entityType: string; entityId: string; title: string; snippet: string }[]>([]); const searchRef = useRef<HTMLInputElement>(null);
   useEffect(() => { const saved = localStorage.getItem("theme"); const enabled = saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches); setDark(enabled); document.documentElement.dataset.theme = enabled ? "dark" : "light"; }, []);
@@ -38,8 +38,8 @@ export function AppShell({ children, email, displayName, csrf, mustChangePasswor
       <div className="workspace">
         <header className="topbar">
           <button className="icon-button mobile-only" onClick={() => setMobileOpen(true)} aria-label="打开导航"><Menu size={21} /></button>
-          <button className="global-search" onClick={() => { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 0); }}><Search size={18} /><span>搜索项目、论文、专利或任务</span><kbd>Ctrl K</kbd></button>
-          <div className="topbar-actions"><span className="today-label">{new Intl.DateTimeFormat("zh-CN", { month: "long", day: "numeric", weekday: "short" }).format(new Date())}</span><button className="icon-button" onClick={toggleTheme} aria-label={dark ? "切换浅色模式" : "切换深色模式"}>{dark ? <Sun size={19} /> : <Moon size={19} />}</button></div>
+          <button className="global-search" onClick={() => { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 0); }}><Search size={18} /><span>搜索项目、论文成果、文献、专利或任务</span><kbd>Ctrl K</kbd></button>
+          <div className="topbar-actions"><span className="today-label">{new Intl.DateTimeFormat("zh-CN", { timeZone, month: "long", day: "numeric", weekday: "short" }).format(new Date())}</span><button className="icon-button" onClick={toggleTheme} aria-label={dark ? "切换浅色模式" : "切换深色模式"}>{dark ? <Sun size={19} /> : <Moon size={19} />}</button></div>
         </header>
         {mustChangePassword && <Link href="/settings" className="security-banner"><span>初始密码仍在使用，请先更新管理员密码。</span><ChevronRight size={17} /></Link>}
         <div className="page-stage">{children}</div>
