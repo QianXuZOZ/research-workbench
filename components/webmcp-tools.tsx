@@ -15,7 +15,7 @@ export function WebMcpTools() {
     void Promise.resolve(context.registerTool({
       name: "search_research_records",
       title: "搜索科研记录",
-      description: "Search the signed-in researcher's projects, papers, patents, growth records, and tasks by title or keyword.",
+      description: "Search the signed-in researcher's projects, publication records, literature, patents, growth records, and tasks by title or keyword.",
       inputSchema: { type: "object", properties: { query: { type: "string", minLength: 2, maxLength: 100 } }, required: ["query"], additionalProperties: false },
       annotations: { readOnlyHint: true, untrustedContentHint: true },
       async execute(input) {
