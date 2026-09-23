@@ -11,7 +11,7 @@ import { updateSearchIndex } from "@/lib/search";
 
 export async function POST(request: NextRequest) {
   const auth = await requireApiSession(request); if ("response" in auth) return auth.response;
-  const count = ["projects", "papers", "patents", "growth_items", "tasks", "promotion_cycles"].reduce((sum, table) => sum + Number((sqlite.prepare(`SELECT COUNT(*) count FROM ${table}`).get() as { count: number }).count), 0);
+  const count = ["projects", "papers", "literature_items", "patents", "growth_items", "tasks", "promotion_cycles"].reduce((sum, table) => sum + Number((sqlite.prepare(`SELECT COUNT(*) count FROM ${table}`).get() as { count: number }).count), 0);
   if (count > 0) return jsonError("恢复仅允许在空白实例中进行。请先使用新的数据目录启动应用。", 409, "INSTANCE_NOT_EMPTY");
   const form = await request.formData(); const file = form.get("file");
   if (!(file instanceof File) || !file.name.toLowerCase().endsWith(".zip")) return jsonError("请选择工作台备份 ZIP", 400, "VALIDATION_ERROR");
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       const name = path.basename(item.path); fs.writeFileSync(path.join(uploadDir, name), zip.getEntry(item.path)!.getData(), { flag: "wx" });
     }
     const searchable = [
-      ["projects", "projects", ["title", "summary", "notes", "keywords"]], ["papers", "papers", ["title", "abstract", "notes", "keywords"]],
+      ["projects", "projects", ["title", "summary", "notes", "keywords"]], ["papers", "papers", ["title", "abstract", "notes", "keywords"]], ["literature_items", "literature", ["title", "abstract", "notes", "keywords"]],
       ["patents", "patents", ["title", "abstract", "notes", "keywords"]], ["growth_items", "growth", ["title", "evidence", "notes", "keywords"]], ["tasks", "tasks", ["title", "notes"]],
     ] as const;
     for (const [table, type, fields] of searchable) for (const row of sqlite.prepare(`SELECT * FROM ${table}`).all() as Record<string, unknown>[]) updateSearchIndex(type, String(row.id), String(row.title), fields.slice(1).map((field) => String(row[field] ?? "")).join(" "));

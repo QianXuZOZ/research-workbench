@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clamp, normalizeDoi, normalizeTitle, safeFilename } from "@/lib/utils";
+import { calendarDateInTimeZone, clamp, normalizeDoi, normalizeTitle, safeFilename } from "@/lib/utils";
 
 describe("shared data helpers", () => {
   it("normalizes DOI and titles", () => {
@@ -16,4 +16,10 @@ describe("shared data helpers", () => {
     expect(clamp(1.4, 0, 1)).toBe(1);
     expect(clamp(-0.2, 0, 1)).toBe(0);
   });
+  it("converts calendar dates using the configured research timezone", () => {
+    const instant = new Date("2026-09-23T16:30:00.000Z");
+    expect(calendarDateInTimeZone(instant, "Asia/Hong_Kong")).toBe("2026-09-24");
+    expect(calendarDateInTimeZone(instant, "UTC")).toBe("2026-09-23");
+  });
+
 });

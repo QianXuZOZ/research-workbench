@@ -41,6 +41,7 @@ export const projects = sqliteTable("projects", {
   status: text("status").notNull().default("planning"),
   startDate: text("start_date"),
   endDate: text("end_date"),
+  completedAt: text("completed_at"),
   funding: real("funding"),
   leader: text("leader"),
   members: text("members"),
@@ -74,6 +75,26 @@ export const papers = sqliteTable("papers", {
   bibtex: text("bibtex"),
   ...audit,
 }, (table) => [uniqueIndex("idx_papers_doi_unique").on(table.doi), index("idx_papers_status_year").on(table.status, table.year)]);
+
+export const literatureItems = sqliteTable("literature_items", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  authors: text("authors"),
+  venue: text("venue"),
+  venueType: text("venue_type").notNull().default("journal"),
+  status: text("status").notNull().default("unread"),
+  year: integer("year"),
+  doi: text("doi"),
+  url: text("url"),
+  abstract: text("abstract"),
+  keywords: text("keywords"),
+  notes: text("notes"),
+  bibtex: text("bibtex"),
+  ...audit,
+}, (table) => [
+  uniqueIndex("idx_literature_doi_unique").on(table.doi),
+  index("idx_literature_status_year").on(table.status, table.year),
+]);
 
 export const patents = sqliteTable("patents", {
   id: text("id").primaryKey(),

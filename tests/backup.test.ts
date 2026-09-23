@@ -41,6 +41,7 @@ describe("versioned backup export", () => {
     const manifest = JSON.parse(manifestBuffer!.toString("utf8"));
     expect(data.schemaVersion).toBe(1);
     expect(data.tables.projects.some((item: { id: string }) => item.id === projectId)).toBe(true);
+    expect(data.tables.literature_items).toEqual([]);
     const dataEntry = manifest.files.find((item: { path: string }) => item.path === "data.json");
     expect(dataEntry.sha256).toBe(createHash("sha256").update(dataBuffer!).digest("hex"));
   });
