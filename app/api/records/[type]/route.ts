@@ -3,7 +3,7 @@ import { sqlite } from "@/lib/db";
 import { logActivity } from "@/lib/activity";
 import { fromDatabase, isRecordType, recordLabels, recordSchemas, recordTables, toDatabase } from "@/lib/records";
 import { requireApiSession } from "@/lib/security";
-import { normalizeDoi, nowIso, jsonError } from "@/lib/utils";
+import { calendarDateInTimeZone, normalizeDoi, nowIso, jsonError } from "@/lib/utils";
 import { updateSearchIndex } from "@/lib/search";
 
 export async function GET(request: NextRequest, context: { params: Promise<{ type: string }> }) {
@@ -35,7 +35,8 @@ export async function POST(request: NextRequest, context: { params: Promise<{ ty
   const id = crypto.randomUUID();
   const now = nowIso();
   const data = { ...parsed.data } as Record<string, unknown>;
-  if (type === "papers") data.doi = normalizeDoi(String(data.doi ?? ""));
+  if (type === "papers" || type === "literature") data.doi = normalizeDoi(String(data.doi ?? ""));
+  if (type === "projects" && data.status === "completed" && !data.completedAt) data.completedAt = calendarDateInTimeZone();
   const values = toDatabase(type, data);
   const columns = ["id", ...Object.keys(values), "created_at", "updated_at"];
   try {
