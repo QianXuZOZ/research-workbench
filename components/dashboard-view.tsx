@@ -9,7 +9,7 @@ import { PageHeader } from "@/components/page-header";
 type DashboardData = {
   taskCounts: { overdue: number; due_week: number; done: number; total: number };
   upcoming: Record<string, unknown>[]; projectStats: { status: string; count: number }[]; paperStats: { status: string; count: number }[]; patentStats: { status: string; count: number }[];
-  outputs: { papers: number; patents: number; completedProjects: number }; riskyProjects: Record<string, unknown>[]; activity: Record<string, unknown>[];
+  outputs: { papers: number; patents: number; completedProjects: number }; timezone: string; riskyProjects: Record<string, unknown>[]; activity: Record<string, unknown>[];
   promotion: null | { title: string; progress: number; requiredGaps: number; metrics: Record<string, unknown>[] };
 };
 
@@ -29,7 +29,7 @@ export function DashboardView() {
   const overdue = Number(data.taskCounts.overdue ?? 0); const week = Number(data.taskCounts.due_week ?? 0); const done = Number(data.taskCounts.done ?? 0); const total = Number(data.taskCounts.total ?? 0);
   const completion = total ? Math.round((done / total) * 100) : 0;
   return <div className="dashboard-page">
-    <PageHeader title="今天从哪里推进？" description={`${new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" }).format(new Date())} · 先处理风险，再推进产出。`} actions={<><Link className="button secondary" href="/papers?import=1"><BookOpenText size={16} />导入论文</Link><Link className="button primary" href="/tasks?new=1"><Plus size={16} />新建任务</Link></>} />
+    <PageHeader title="今天从哪里推进？" description={`${new Intl.DateTimeFormat("zh-CN", { timeZone: data.timezone, year: "numeric", month: "long", day: "numeric", weekday: "long" }).format(new Date())} · 先处理风险，再推进产出。`} actions={<><Link className="button secondary" href="/literature?import=1"><BookOpenText size={16} />导入文献</Link><Link className="button primary" href="/tasks?new=1"><Plus size={16} />新建任务</Link></>} />
     <section className="attention-deck" aria-label="今日关注">
       <div className={`attention-main ${overdue ? "danger" : "clear"}`}>
         <div className="attention-icon">{overdue ? <AlertTriangle size={25} /> : <CheckCircle2 size={25} />}</div>
@@ -48,7 +48,7 @@ export function DashboardView() {
       <aside className="risk-panel">
         <div className="section-row"><div><h2>项目风险</h2><p>需要关注的在研项目</p></div><Link href="/projects">管理</Link></div>
         <div className="risk-list">{data.riskyProjects.length ? data.riskyProjects.map((project) => <Link href={`/projects/${project.id}`} key={String(project.id)}><span className={`risk-signal ${project.risk}`} /><div><strong>{String(project.title)}</strong><span>{project.end_date ? `${formatDate(String(project.end_date))} 截止` : "未设截止日期"}</span></div><b>{String(project.progress)}%</b></Link>) : <div className="inline-empty compact"><CheckCircle2 size={20} /><p>没有高风险项目</p></div>}</div>
-        <div className="output-summary"><p>本年度成果</p><div><span><strong>{data.outputs.papers}</strong>论文</span><span><strong>{data.outputs.patents}</strong>专利</span><span><strong>{data.outputs.completedProjects}</strong>结项</span></div></div>
+        <div className="output-summary"><p>本年度成果</p><div><span><strong>{data.outputs.papers}</strong>发表论文</span><span><strong>{data.outputs.patents}</strong>授权专利</span><span><strong>{data.outputs.completedProjects}</strong>结项项目</span></div></div>
       </aside>
     </div>
     <section className="pipeline-section"><div className="section-row"><div><h2>科研管线</h2><p>从在研项目到成果沉淀的实时截面</p></div></div><div className="pipeline-grid"><Distribution title="项目" items={data.projectStats} href="/projects" /><Distribution title="论文" items={data.paperStats} href="/papers" /><Distribution title="专利" items={data.patentStats} href="/patents" /></div></section>
