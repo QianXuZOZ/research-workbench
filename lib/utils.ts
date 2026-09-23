@@ -20,3 +20,14 @@ export function safeFilename(value: string) {
 export function jsonError(message: string, status = 400, code = "BAD_REQUEST", fields?: Record<string, string>) {
   return Response.json({ error: { code, message, fields } }, { status });
 }
+
+export function calendarDateInTimeZone(date = new Date(), timeZone = process.env.APP_TIMEZONE ?? "Asia/Hong_Kong") {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const value = Object.fromEntries(parts.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
+  return `${value.year}-${value.month}-${value.day}`;
+}
