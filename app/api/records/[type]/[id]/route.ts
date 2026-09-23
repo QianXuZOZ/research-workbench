@@ -6,7 +6,7 @@ import { logActivity } from "@/lib/activity";
 import { fromDatabase, isRecordType, recordLabels, recordSchemas, recordTables, toDatabase } from "@/lib/records";
 import { requireApiSession } from "@/lib/security";
 import { deleteSearchIndex, updateSearchIndex } from "@/lib/search";
-import { jsonError, normalizeDoi, nowIso } from "@/lib/utils";
+import { calendarDateInTimeZone, jsonError, normalizeDoi, nowIso } from "@/lib/utils";
 
 export async function GET(_request: NextRequest, context: { params: Promise<{ type: string; id: string }> }) {
   const auth = await requireApiSession();
@@ -44,7 +44,8 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ t
     const parsed = recordSchemas[type].safeParse({ ...fromDatabase(type, current), ...body });
     if (!parsed.success) return jsonError("请检查填写内容", 400, "VALIDATION_ERROR", Object.fromEntries(parsed.error.issues.map((issue) => [String(issue.path[0] ?? "form"), issue.message])));
     const data = { ...parsed.data } as Record<string, unknown>;
-    if (type === "papers") data.doi = normalizeDoi(String(data.doi ?? ""));
+    if (type === "papers" || type === "literature") data.doi = normalizeDoi(String(data.doi ?? ""));
+    if (type === "projects" && data.status === "completed" && !data.completedAt) data.completedAt = calendarDateInTimeZone();
     const values = toDatabase(type, data);
     try {
       sqlite.prepare(`UPDATE ${recordTables[type]} SET ${Object.keys(values).map((key) => `${key} = ?`).join(",")}, updated_at = ? WHERE id = ?`).run(...Object.values(values), nowIso(), id);
