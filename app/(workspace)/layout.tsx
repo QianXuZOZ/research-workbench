@@ -8,5 +8,6 @@ export const dynamic = "force-dynamic";
 export default async function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession(); if (!session) redirect("/login");
   const displayName = (sqlite.prepare("SELECT value FROM settings WHERE key='displayName'").get() as { value: string } | undefined)?.value ?? "研究者";
-  return <AppShell email={session.email} displayName={displayName} csrf={session.csrfToken} mustChangePassword={session.mustChangePassword}>{children}</AppShell>;
+  const timeZone = process.env.APP_TIMEZONE ?? "Asia/Hong_Kong";
+  return <AppShell email={session.email} displayName={displayName} csrf={session.csrfToken} mustChangePassword={session.mustChangePassword} timeZone={timeZone}>{children}</AppShell>;
 }
