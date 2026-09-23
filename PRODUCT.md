@@ -32,9 +32,9 @@ The product links day-to-day research actions with long-horizon promotion eviden
 ## Capabilities and Constraints
 
 - Single administrator only; no self-registration or team permissions.
-- Durable CRUD for projects, papers, patents, growth records, tasks, milestones, promotion cycles, metrics, tags, attachments, links, and activity history.
+- Durable CRUD for projects, publication records, literature items, patents, growth records, tasks, milestones, promotion cycles, metrics, tags, attachments, links, and activity history.
 - Unified tasks and deadlines across research records.
-- BibTeX preview/import with DOI and normalized title/year deduplication.
+- BibTeX preview/import into the literature library with DOI and normalized title/year deduplication; imported references never count as publication outputs.
 - Authenticated local attachment storage and versioned full backup export; restore is limited to an empty instance.
 - Chinese UI, UTC persistence, and Asia/Hong_Kong display time.
 - No email or WeChat reminders, live Zotero sync, citation scraping, OCR, AI writing, or institutional SSO in v1.
