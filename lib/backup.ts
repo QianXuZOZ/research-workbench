@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import { sqlite } from "@/lib/db";
 
 export const BACKUP_SCHEMA_VERSION = 1;
-export const backupTables = ["projects", "papers", "patents", "growth_items", "tasks", "promotion_cycles", "promotion_metrics", "attachments", "tags", "record_tags", "research_links", "activity_logs", "settings"] as const;
+export const backupTables = ["projects", "papers", "literature_items", "patents", "growth_items", "tasks", "promotion_cycles", "promotion_metrics", "attachments", "tags", "record_tags", "research_links", "activity_logs", "settings"] as const;
 
 export async function createBackupBuffer() {
   const archive = archiver("zip", { zlib: { level: 6 } });
