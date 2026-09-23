@@ -24,7 +24,7 @@ export function AppShell({ children, email, displayName, csrf, mustChangePasswor
   async function logout() { await apiFetch("/api/auth/logout", { method: "POST" }); router.replace("/login"); router.refresh(); }
   const initials = (displayName || email).slice(0, 1).toUpperCase();
   return (
-    <div className="app-shell" data-csrf={csrf}>
+    <div className="app-shell" data-csrf={csrf} data-timezone={timeZone}>
       <WebMcpTools />
       <aside className={`sidebar ${mobileOpen ? "open" : ""}`}>
         <div className="sidebar-head"><Link href="/dashboard" className="brand-lockup"><span className="brand-mark"><Zap size={18} /></span><span>电研工作台</span></Link><button className="icon-button mobile-only" onClick={() => setMobileOpen(false)} aria-label="关闭导航"><X size={20} /></button></div>
