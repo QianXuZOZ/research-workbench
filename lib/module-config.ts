@@ -14,7 +14,7 @@ export const modules: Record<string, ModuleConfig> = {
     ],
   },
   papers: {
-    type: "papers", title: "论文管理", singular: "论文", description: "跟踪从选题、撰写到投稿、返修与发表的完整过程。", addLabel: "新建论文", emptyTitle: "录入第一篇论文", emptyDescription: "手动录入或导入 BibTeX，后续可关联项目、任务和投稿材料。",
+    type: "papers", title: "论文成果", singular: "论文", description: "跟踪本人参与论文从选题、撰写到投稿、返修与发表的完整过程。", addLabel: "新建论文", emptyTitle: "录入第一篇论文成果", emptyDescription: "记录本人参与的论文成果，后续可关联项目、任务和投稿材料。",
     statusOptions: [["idea", "选题"], ["drafting", "撰写"], ["submitted", "已投稿"], ["revision", "返修"], ["accepted", "已录用"], ["published", "已发表"], ["rejected", "退稿"]],
     columns: [{ key: "title", label: "论文" }, { key: "status", label: "阶段" }, { key: "venue", label: "期刊 / 会议" }, { key: "authorRole", label: "作者角色" }, { key: "year", label: "年份" }],
     fields: [
