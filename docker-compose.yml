@@ -1,0 +1,12 @@
+services:
+  workbench:
+    build: .
+    container_name: research-workbench
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "127.0.0.1:3100:3000"
+    volumes:
+      - ./data:/data
+    security_opt:
+      - no-new-privileges:true

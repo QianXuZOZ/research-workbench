@@ -1,0 +1,41 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE `admins` (`id` text PRIMARY KEY NOT NULL, `email` text NOT NULL, `password_hash` text NOT NULL, `must_change_password` integer DEFAULT 1 NOT NULL, `created_at` text NOT NULL, `updated_at` text NOT NULL);
+CREATE UNIQUE INDEX `idx_admins_email` ON `admins` (`email`);
+CREATE TABLE `sessions` (`id` text PRIMARY KEY NOT NULL, `admin_id` text NOT NULL, `token_hash` text NOT NULL, `csrf_token` text NOT NULL, `expires_at` text NOT NULL, `created_at` text NOT NULL, `last_seen_at` text NOT NULL, FOREIGN KEY (`admin_id`) REFERENCES `admins`(`id`) ON UPDATE no action ON DELETE cascade);
+CREATE UNIQUE INDEX `idx_sessions_token_hash` ON `sessions` (`token_hash`);
+CREATE INDEX `idx_sessions_expires` ON `sessions` (`expires_at`);
+CREATE TABLE `login_attempts` (`key` text PRIMARY KEY NOT NULL, `failed_count` integer DEFAULT 0 NOT NULL, `blocked_until` text, `updated_at` text NOT NULL);
+
+CREATE TABLE `projects` (`id` text PRIMARY KEY NOT NULL, `title` text NOT NULL, `code` text, `category` text DEFAULT '纵向项目' NOT NULL, `role` text DEFAULT '负责人' NOT NULL, `status` text DEFAULT 'planning' NOT NULL, `start_date` text, `end_date` text, `funding` real, `leader` text, `members` text, `progress` integer DEFAULT 0 NOT NULL, `risk` text DEFAULT 'normal' NOT NULL, `summary` text, `notes` text, `keywords` text, `created_at` text NOT NULL, `updated_at` text NOT NULL, `archived_at` text);
+CREATE INDEX `idx_projects_status_end` ON `projects` (`status`,`end_date`);
+CREATE TABLE `papers` (`id` text PRIMARY KEY NOT NULL, `title` text NOT NULL, `authors` text, `author_role` text, `venue` text, `venue_type` text DEFAULT 'journal' NOT NULL, `status` text DEFAULT 'idea' NOT NULL, `year` integer, `submitted_at` text, `accepted_at` text, `published_at` text, `doi` text, `journal_quartile` text, `cas_quartile` text, `impact_factor` real, `abstract` text, `keywords` text, `notes` text, `bibtex` text, `created_at` text NOT NULL, `updated_at` text NOT NULL, `archived_at` text);
+CREATE UNIQUE INDEX `idx_papers_doi_unique` ON `papers` (`doi`) WHERE `doi` IS NOT NULL AND `doi` != '';
+CREATE INDEX `idx_papers_status_year` ON `papers` (`status`,`year`);
+CREATE TABLE `patents` (`id` text PRIMARY KEY NOT NULL, `title` text NOT NULL, `patent_type` text DEFAULT 'invention' NOT NULL, `status` text DEFAULT 'drafting' NOT NULL, `application_number` text, `publication_number` text, `inventors` text, `applicant` text, `agency` text, `filed_at` text, `published_at` text, `granted_at` text, `fee_due_at` text, `abstract` text, `keywords` text, `notes` text, `created_at` text NOT NULL, `updated_at` text NOT NULL, `archived_at` text);
+CREATE UNIQUE INDEX `idx_patents_application_unique` ON `patents` (`application_number`) WHERE `application_number` IS NOT NULL AND `application_number` != '';
+CREATE INDEX `idx_patents_status_due` ON `patents` (`status`,`fee_due_at`);
+CREATE TABLE `growth_items` (`id` text PRIMARY KEY NOT NULL, `title` text NOT NULL, `category` text DEFAULT 'skill' NOT NULL, `status` text DEFAULT 'planned' NOT NULL, `started_at` text, `due_at` text, `completed_at` text, `target_value` real, `current_value` real DEFAULT 0 NOT NULL, `unit` text, `provider` text, `evidence` text, `notes` text, `keywords` text, `created_at` text NOT NULL, `updated_at` text NOT NULL, `archived_at` text);
+CREATE INDEX `idx_growth_status_due` ON `growth_items` (`status`,`due_at`);
+CREATE TABLE `tasks` (`id` text PRIMARY KEY NOT NULL, `title` text NOT NULL, `kind` text DEFAULT 'task' NOT NULL, `status` text DEFAULT 'todo' NOT NULL, `priority` text DEFAULT 'medium' NOT NULL, `due_at` text, `start_at` text, `completed_at` text, `progress` integer DEFAULT 0 NOT NULL, `entity_type` text, `entity_id` text, `notes` text, `created_at` text NOT NULL, `updated_at` text NOT NULL, `archived_at` text);
+CREATE INDEX `idx_tasks_status_due` ON `tasks` (`status`,`due_at`);
+CREATE INDEX `idx_tasks_entity` ON `tasks` (`entity_type`,`entity_id`);
+CREATE TABLE `promotion_cycles` (`id` text PRIMARY KEY NOT NULL, `title` text NOT NULL, `target_role` text, `status` text DEFAULT 'active' NOT NULL, `starts_at` text, `due_at` text, `notes` text, `created_at` text NOT NULL, `updated_at` text NOT NULL, `archived_at` text);
+CREATE INDEX `idx_promotion_cycles_status_due` ON `promotion_cycles` (`status`,`due_at`);
+CREATE TABLE `promotion_metrics` (`id` text PRIMARY KEY NOT NULL, `cycle_id` text NOT NULL, `category` text NOT NULL, `name` text NOT NULL, `metric_type` text DEFAULT 'count' NOT NULL, `source_type` text DEFAULT 'manual' NOT NULL, `source_filter` text, `target_value` real DEFAULT 1 NOT NULL, `manual_value` real DEFAULT 0 NOT NULL, `weight` real DEFAULT 1 NOT NULL, `required` integer DEFAULT 0 NOT NULL, `evidence_notes` text, `created_at` text NOT NULL, `updated_at` text NOT NULL, `archived_at` text, FOREIGN KEY (`cycle_id`) REFERENCES `promotion_cycles`(`id`) ON UPDATE no action ON DELETE cascade);
+CREATE INDEX `idx_promotion_metrics_cycle` ON `promotion_metrics` (`cycle_id`);
+CREATE TABLE `attachments` (`id` text PRIMARY KEY NOT NULL, `entity_type` text NOT NULL, `entity_id` text NOT NULL, `original_name` text NOT NULL, `storage_name` text NOT NULL, `mime_type` text NOT NULL, `size` integer NOT NULL, `sha256` text NOT NULL, `label` text, `created_at` text NOT NULL);
+CREATE INDEX `idx_attachments_entity` ON `attachments` (`entity_type`,`entity_id`);
+CREATE TABLE `tags` (`id` text PRIMARY KEY NOT NULL, `name` text NOT NULL, `color` text DEFAULT 'cyan' NOT NULL, `created_at` text NOT NULL);
+CREATE UNIQUE INDEX `idx_tags_name` ON `tags` (`name`);
+CREATE TABLE `record_tags` (`entity_type` text NOT NULL, `entity_id` text NOT NULL, `tag_id` text NOT NULL, FOREIGN KEY (`tag_id`) REFERENCES `tags`(`id`) ON UPDATE no action ON DELETE cascade);
+CREATE UNIQUE INDEX `idx_record_tags_unique` ON `record_tags` (`entity_type`,`entity_id`,`tag_id`);
+CREATE INDEX `idx_record_tags_tag` ON `record_tags` (`tag_id`);
+CREATE TABLE `research_links` (`id` text PRIMARY KEY NOT NULL, `source_type` text NOT NULL, `source_id` text NOT NULL, `target_type` text NOT NULL, `target_id` text NOT NULL, `relation` text DEFAULT 'related' NOT NULL, `created_at` text NOT NULL);
+CREATE UNIQUE INDEX `idx_research_links_unique` ON `research_links` (`source_type`,`source_id`,`target_type`,`target_id`);
+CREATE INDEX `idx_research_links_source` ON `research_links` (`source_type`,`source_id`);
+CREATE TABLE `activity_logs` (`id` text PRIMARY KEY NOT NULL, `action` text NOT NULL, `entity_type` text, `entity_id` text, `summary` text NOT NULL, `details` text, `created_at` text NOT NULL);
+CREATE INDEX `idx_activity_logs_created` ON `activity_logs` (`created_at`);
+CREATE TABLE `settings` (`key` text PRIMARY KEY NOT NULL, `value` text NOT NULL, `updated_at` text NOT NULL);
+
+CREATE VIRTUAL TABLE `search_index` USING fts5(`entity_type` UNINDEXED, `entity_id` UNINDEXED, `title`, `body`, tokenize='trigram');

@@ -1,0 +1,386 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-23T11:20:00+08:00",
+  "title": "Design System: 电研工作台",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#10233f",
+        "tonalRamp": ["#06101f", "#0b1b31", "#10233f", "#2a405d", "#51647d", "#8493a5", "#bcc6d1", "#edf1f5"]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "#51647d",
+        "tonalRamp": ["#1a222e", "#303f53", "#51647d", "#718198", "#93a0b1", "#b4bec9", "#d5dbe1", "#f2f4f6"]
+      },
+      "ink-subtle": {
+        "role": "neutral",
+        "displayName": "Subtle Ink",
+        "canonical": "#5f6f82",
+        "tonalRamp": ["#1d2632", "#354454", "#5f6f82", "#7f8e9d", "#9eabb7", "#bdc7cf", "#d9e0e5", "#f3f6f8"]
+      },
+      "on-navy": {
+        "role": "neutral",
+        "displayName": "On Navy",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#111820", "#2c3741", "#4c5862", "#707b83", "#949da4", "#b8bec3", "#dce0e3", "#ffffff"]
+      },
+      "shell-navy": {
+        "role": "primary",
+        "displayName": "Shell Navy",
+        "canonical": "#071d3b",
+        "tonalRamp": ["#020b19", "#05182f", "#071d3b", "#1b3e63", "#446887", "#7898af", "#b0c5d4", "#e8f3fa"]
+      },
+      "panel-navy": {
+        "role": "primary",
+        "displayName": "Panel Navy",
+        "canonical": "#0a315d",
+        "tonalRamp": ["#03162c", "#072647", "#0a315d", "#27547e", "#527ba0", "#829fb9", "#b5cad9", "#eaf2f8"]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Cool Paper",
+        "canonical": "#f4f7fa",
+        "tonalRamp": ["#0b1725", "#1b2c3f", "#395066", "#61788d", "#8ca0b1", "#b5c3ce", "#d9e2e9", "#f4f7fa"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface White",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#101820", "#2d3a45", "#52606b", "#78848d", "#a4adb5", "#c8cfd4", "#e7eaed", "#ffffff"]
+      },
+      "surface-2": {
+        "role": "neutral",
+        "displayName": "Surface 2",
+        "canonical": "#edf2f6",
+        "tonalRamp": ["#0c1722", "#22313f", "#405364", "#687988", "#91a0ab", "#b8c3cb", "#d9e1e6", "#edf2f6"]
+      },
+      "surface-3": {
+        "role": "neutral",
+        "displayName": "Surface 3",
+        "canonical": "#e4ebf1",
+        "tonalRamp": ["#0a151f", "#1d2d3b", "#3b4e5d", "#617381", "#8999a5", "#b0bdc6", "#d0d9df", "#e4ebf1"]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "canonical": "#d9e2e9",
+        "tonalRamp": ["#07121d", "#192835", "#334653", "#526572", "#758792", "#9eabb4", "#bcc9d1", "#d9e2e9"]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Strong Line",
+        "canonical": "#c4d1db",
+        "tonalRamp": ["#06101a", "#152532", "#2e414e", "#4b5f6c", "#6d808d", "#93a3ae", "#afbec7", "#c4d1db"]
+      },
+      "navy": {
+        "role": "primary",
+        "displayName": "Deep Research Navy",
+        "canonical": "#082b55",
+        "tonalRamp": ["#031329", "#062044", "#082b55", "#194a78", "#3b6e98", "#6d96b6", "#a8c3d7", "#e8f1f7"]
+      },
+      "navy-2": {
+        "role": "primary",
+        "displayName": "Research Blue",
+        "canonical": "#0c3c70",
+        "tonalRamp": ["#041c36", "#082d54", "#0c3c70", "#2d5d8e", "#5e85aa", "#8eacc5", "#bed1df", "#eaf2f8"]
+      },
+      "cyan": {
+        "role": "secondary",
+        "displayName": "Electric Cyan",
+        "canonical": "#06727a",
+        "tonalRamp": ["#02383c", "#045a61", "#06727a", "#3a9296", "#6db0b1", "#9dcbcb", "#c9e5e5", "#effafa"]
+      },
+      "cyan-bright": {
+        "role": "secondary",
+        "displayName": "Cyan Bright",
+        "canonical": "#26c3c0",
+        "tonalRamp": ["#07504f", "#0d8986", "#26c3c0", "#59cfcc", "#83dcd8", "#ace8e5", "#d0f2f0", "#f0fcfb"]
+      },
+      "cyan-soft": {
+        "role": "secondary",
+        "displayName": "Cyan Soft",
+        "canonical": "#d9f1f0",
+        "tonalRamp": ["#063536", "#1a6161", "#4b8d8b", "#7bb1ae", "#a4cbc8", "#c3e2df", "#d9f1f0", "#f2fcfb"]
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Danger Red",
+        "canonical": "#c73f4b",
+        "tonalRamp": ["#4c101b", "#7f1f2c", "#c73f4b", "#d76a72", "#e19196", "#edb5b8", "#f6d6d8", "#fdf0f1"]
+      },
+      "danger-soft": {
+        "role": "tertiary",
+        "displayName": "Danger Soft",
+        "canonical": "#fae8e9",
+        "tonalRamp": ["#4c101b", "#7f1f2c", "#b64b56", "#d47a81", "#e59ca0", "#efbdc0", "#f6d4d6", "#fae8e9"]
+      },
+      "warning": {
+        "role": "tertiary",
+        "displayName": "Warning Amber",
+        "canonical": "#955900",
+        "tonalRamp": ["#3d2100", "#653900", "#955900", "#b47a25", "#c99b52", "#ddbd80", "#efdaae", "#fff3d8"]
+      },
+      "warning-soft": {
+        "role": "tertiary",
+        "displayName": "Warning Soft",
+        "canonical": "#fff0d5",
+        "tonalRamp": ["#4c2900", "#7a4b00", "#ac7520", "#cd9e55", "#e2be82", "#efd3a4", "#f8e3be", "#fff0d5"]
+      },
+      "success": {
+        "role": "tertiary",
+        "displayName": "Success Green",
+        "canonical": "#158261",
+        "tonalRamp": ["#043b2a", "#086147", "#158261", "#429e80", "#70b89b", "#9ed0bb", "#c5e6d7", "#ebf8f2"]
+      },
+      "success-soft": {
+        "role": "tertiary",
+        "displayName": "Success Soft",
+        "canonical": "#dcf3e9",
+        "tonalRamp": ["#043b2a", "#086147", "#158261", "#4eaa89", "#85c5a9", "#b1dcc8", "#cdeade", "#dcf3e9"]
+      },
+      "dark-paper": {
+        "role": "neutral",
+        "displayName": "Dark Paper",
+        "canonical": "#071321",
+        "tonalRamp": ["#02060b", "#071321", "#13263a", "#254056", "#48637a", "#718aa0", "#a4b6c5", "#e8f2fa"]
+      },
+      "dark-ink": {
+        "role": "neutral",
+        "displayName": "Dark Ink",
+        "canonical": "#e9f2fa",
+        "tonalRamp": ["#0a141f", "#203246", "#3b5064", "#5c7183", "#8295a4", "#a9b8c4", "#cbd7df", "#e9f2fa"]
+      },
+      "dark-ink-muted": {
+        "role": "neutral",
+        "displayName": "Dark Muted Ink",
+        "canonical": "#a7b7ca",
+        "tonalRamp": ["#15202c", "#334455", "#53677a", "#73879a", "#93a6b5", "#b0c0cb", "#cbd6de", "#eef5f9"]
+      },
+      "dark-ink-subtle": {
+        "role": "neutral",
+        "displayName": "Dark Subtle Ink",
+        "canonical": "#8da0b5",
+        "tonalRamp": ["#121d29", "#2d3d4f", "#4c5e70", "#6a7d8f", "#889aa9", "#a6b6c1", "#c1cdd4", "#eaf1f5"]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Dark Surface",
+        "canonical": "#0c1c2d",
+        "tonalRamp": ["#03070d", "#0c1c2d", "#1b3349", "#345069", "#57738a", "#8299ab", "#b4c3cf", "#edf5fa"]
+      },
+      "dark-surface-2": {
+        "role": "neutral",
+        "displayName": "Dark Surface 2",
+        "canonical": "#11263a",
+        "tonalRamp": ["#04090f", "#11263a", "#244259", "#45647a", "#6d899c", "#98afbd", "#c4d1d9", "#f0f7fb"]
+      },
+      "dark-surface-3": {
+        "role": "neutral",
+        "displayName": "Dark Surface 3",
+        "canonical": "#173047",
+        "tonalRamp": ["#050b12", "#173047", "#2b4b64", "#4d6d84", "#7492a5", "#a0b4c1", "#c8d5dc", "#f2f8fb"]
+      },
+      "dark-line": {
+        "role": "neutral",
+        "displayName": "Dark Line",
+        "canonical": "#21384e",
+        "tonalRamp": ["#06101a", "#21384e", "#3d5970", "#5f7a8d", "#849baa", "#a9bbc6", "#cad6dc", "#eff5f8"]
+      },
+      "dark-line-strong": {
+        "role": "neutral",
+        "displayName": "Dark Strong Line",
+        "canonical": "#31506b",
+        "tonalRamp": ["#0a1824", "#31506b", "#4d6e86", "#6e8da2", "#91a9b8", "#b3c5ce", "#d1dde2", "#f2f7fa"]
+      },
+      "dark-navy": {
+        "role": "primary",
+        "displayName": "Dark Navy Text",
+        "canonical": "#dcecff",
+        "tonalRamp": ["#0a1b2a", "#254057", "#46637a", "#6c879b", "#93aabb", "#b5c9d5", "#dcecff", "#f7fbff"]
+      },
+      "dark-navy-2": {
+        "role": "primary",
+        "displayName": "Dark Research Blue",
+        "canonical": "#9ac7ee",
+        "tonalRamp": ["#0c2235", "#2a4d6b", "#4c789e", "#6e9dc1", "#9ac7ee", "#bcdaef", "#d7e9f7", "#f2f9ff"]
+      },
+      "dark-cyan": {
+        "role": "secondary",
+        "displayName": "Dark Electric Cyan",
+        "canonical": "#42cfca",
+        "tonalRamp": ["#064b4a", "#0d8985", "#42cfca", "#6edbd6", "#97e5e1", "#bceeea", "#d7f6f3", "#f2fdfc"]
+      },
+      "dark-cyan-bright": {
+        "role": "secondary",
+        "displayName": "Dark Cyan Bright",
+        "canonical": "#52e1db",
+        "tonalRamp": ["#075a57", "#12a7a0", "#52e1db", "#7de9e4", "#a1efeb", "#c4f4f1", "#def9f7", "#f5fefd"]
+      },
+      "dark-cyan-soft": {
+        "role": "secondary",
+        "displayName": "Dark Cyan Soft",
+        "canonical": "#113a42",
+        "tonalRamp": ["#061c20", "#113a42", "#245762", "#427783", "#6e99a2", "#9dbbc0", "#c3d8da", "#ecf7f7"]
+      },
+      "dark-danger": {
+        "role": "tertiary",
+        "displayName": "Dark Danger",
+        "canonical": "#ff8f98",
+        "tonalRamp": ["#5a1624", "#a62f43", "#ff8f98", "#ffabb1", "#ffc1c5", "#ffd5d8", "#ffe6e8", "#fff6f7"]
+      },
+      "dark-danger-soft": {
+        "role": "tertiary",
+        "displayName": "Dark Danger Soft",
+        "canonical": "#44232d",
+        "tonalRamp": ["#1d0d13", "#44232d", "#6f3945", "#985562", "#bd7983", "#d89ba3", "#eac0c5", "#f8e9ea"]
+      },
+      "dark-warning": {
+        "role": "tertiary",
+        "displayName": "Dark Warning",
+        "canonical": "#f4bd61",
+        "tonalRamp": ["#4d2c08", "#8b5b13", "#f4bd61", "#f7ca7e", "#f9d698", "#fbe2b2", "#fcedcf", "#fff9ee"]
+      },
+      "dark-warning-soft": {
+        "role": "tertiary",
+        "displayName": "Dark Warning Soft",
+        "canonical": "#3b2e19",
+        "tonalRamp": ["#191207", "#3b2e19", "#66502c", "#8e7346", "#b39764", "#cdb882", "#e5d4a9", "#f8f2df"]
+      },
+      "dark-success": {
+        "role": "tertiary",
+        "displayName": "Dark Success",
+        "canonical": "#62d6aa",
+        "tonalRamp": ["#073e2c", "#0c805a", "#62d6aa", "#83dfbc", "#a1e7c9", "#beedd7", "#d9f5e6", "#f1fcf6"]
+      },
+      "dark-success-soft": {
+        "role": "tertiary",
+        "displayName": "Dark Success Soft",
+        "canonical": "#173a31",
+        "tonalRamp": ["#091a14", "#173a31", "#2b5f50", "#4e826f", "#76a990", "#9cc8b1", "#c1e0ce", "#ebf8f1"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Console Display", "purpose": "Rare entry or login statement; do not use for routine dashboard content." },
+      "headline": { "displayName": "Workbench Headline", "purpose": "Page and record headings with a compact technical silhouette." },
+      "title": { "displayName": "Panel Title", "purpose": "Section and card headings in the operational hierarchy." },
+      "body": { "displayName": "Chinese Body", "purpose": "Readable Chinese-first descriptions, form fields, and supporting copy." },
+      "label": { "displayName": "Signal Label", "purpose": "Navigation, statuses, metadata, actions, and compact numeric context." }
+    },
+    "shadows": [
+      { "name": "ambient-surface", "value": "0 8px 24px rgba(10, 42, 75, 0.07)", "purpose": "Soft lift for data surfaces and cards in light mode." },
+      { "name": "lifted-layer", "value": "0 18px 45px rgba(10, 42, 75, 0.1)", "purpose": "Stronger elevation for detail heroes and saved-state feedback in light mode." },
+      { "name": "transient-overlay", "value": "0 30px 80px rgba(0, 14, 33, 0.32)", "purpose": "Command search and other transient overlays only." }
+    ],
+    "motion": [
+      { "name": "state-transition", "value": "180ms ease", "purpose": "Button, icon, border, color, and hover state changes." },
+      { "name": "sheet-enter", "value": "240ms cubic-bezier(.2,.8,.2,1)", "purpose": "Right-side form sheet entering from the edge." },
+      { "name": "reduced-motion", "value": "0.01ms duration; one iteration", "purpose": "Respect prefers-reduced-motion for animation and transition." }
+    ],
+    "breakpoints": [
+      { "name": "compact-desktop", "value": "1180px" },
+      { "name": "tablet-drawer", "value": "900px" },
+      { "name": "mobile", "value": "640px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The confident action for creating or committing a work item.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">新建任务</button>",
+      "css": ".ds-btn-primary { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 15px; border: 1px solid transparent; border-radius: 10px; color: #fff; background: var(--navy); font: 650 12px/1.4 \"Manrope Variable\", \"Noto Sans SC Variable\", sans-serif; cursor: pointer; transition: border-color .18s ease, background .18s ease, color .18s ease, transform .18s ease; } .ds-btn-primary:hover { transform: translateY(-1px); } .ds-btn-primary:focus-visible { outline: 3px solid color-mix(in srgb, var(--cyan) 45%, transparent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A low-risk companion action on a surface background.",
+      "html": "<button class=\"ds-btn-secondary\" type=\"button\">导入论文</button>",
+      "css": ".ds-btn-secondary { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 15px; border: 1px solid var(--line-strong); border-radius: 10px; color: var(--navy); background: var(--surface); font: 650 12px/1.4 \"Manrope Variable\", \"Noto Sans SC Variable\", sans-serif; cursor: pointer; transition: border-color .18s ease, background .18s ease, transform .18s ease; } .ds-btn-secondary:hover { border-color: var(--cyan); background: var(--cyan-soft); transform: translateY(-1px); } .ds-btn-secondary:focus-visible { outline: 3px solid color-mix(in srgb, var(--cyan) 45%, transparent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "A readable field for a label-led form or search interaction.",
+      "html": "<label class=\"ds-field\"><span>项目名称</span><input type=\"text\" placeholder=\"输入项目名称\" /></label>",
+      "css": ".ds-field { display: grid; gap: 7px; color: var(--ink-muted); font: 600 13px/1.4 \"Noto Sans SC Variable\", \"Microsoft YaHei\", sans-serif; } .ds-field input { width: 100%; min-height: 42px; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 10px; color: var(--ink); background: var(--surface); font: 400 15px/1.6 \"Noto Sans SC Variable\", \"Microsoft YaHei\", sans-serif; transition: border-color .18s ease, box-shadow .18s ease; } .ds-field input::placeholder { color: var(--ink-subtle); } .ds-field input:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px color-mix(in srgb, var(--cyan) 14%, transparent); }"
+    },
+    {
+      "name": "Sidebar Navigation Item",
+      "kind": "nav",
+      "refersTo": "nav-active",
+      "description": "A 43 px rail item that makes the current research area obvious.",
+      "html": "<a class=\"ds-nav-item is-active\" href=\"#\"><span>⌘</span><span>驾驶舱</span><i aria-hidden=\"true\"></i></a>",
+      "css": ".ds-nav-item { position: relative; min-height: 43px; padding: 10px 12px; display: flex; align-items: center; gap: 11px; border-radius: 10px; color: #8fa7bd; background: transparent; font: 560 14px/1.4 \"Noto Sans SC Variable\", \"Microsoft YaHei\", sans-serif; text-decoration: none; transition: background .18s ease, color .18s ease; } .ds-nav-item:hover { color: #fff; background: rgba(255,255,255,.06); } .ds-nav-item.is-active { color: #fff; background: rgba(55,215,210,.12); } .ds-nav-item i { position: absolute; right: -14px; width: 3px; height: 24px; border-radius: 3px 0 0 3px; background: #37d7d2; } .ds-nav-item:focus-visible { outline: 3px solid color-mix(in srgb, #37d7d2 55%, transparent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Data Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "A quiet surface for a timeline, risk list, snapshot, or activity feed.",
+      "html": "<section class=\"ds-panel\"><h3>近期节点</h3><p>截止时间与优先级合并排序</p></section>",
+      "css": ".ds-panel { padding: 22px; border: 1px solid var(--line); border-radius: 14px; color: var(--ink); background: var(--surface); } .ds-panel h3 { margin: 0 0 2px; font: 650 17px/1.35 \"Manrope Variable\", \"Noto Sans SC Variable\", sans-serif; letter-spacing: -.02em; } .ds-panel p { margin: 0; color: var(--ink-muted); font: 400 12px/1.6 \"Noto Sans SC Variable\", \"Microsoft YaHei\", sans-serif; }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "status-success",
+      "description": "A compact semantic status that always pairs color with text.",
+      "html": "<span class=\"ds-status-success\">已完成</span>",
+      "css": ".ds-status-success { min-height: 25px; padding: 3px 8px; display: inline-flex; align-items: center; gap: 4px; border-radius: 7px; color: var(--success); background: var(--success-soft); font: 650 11px/1.4 \"Noto Sans SC Variable\", \"Microsoft YaHei\", sans-serif; white-space: nowrap; }"
+    },
+    {
+      "name": "Task Card",
+      "kind": "custom",
+      "refersTo": "panel",
+      "description": "A compact task unit inside the horizontally scrollable four-column board.",
+      "html": "<article class=\"ds-task-card\"><span class=\"ds-task-chip\">高优先级</span><h3>整理距离保护仿真算例</h3><p>独立任务 · 研究项目</p></article>",
+      "css": ".ds-task-card { padding: 14px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: var(--surface); box-shadow: 0 5px 14px rgba(8,43,85,.045); } .ds-task-chip { min-height: 22px; padding: 3px 7px; display: inline-flex; align-items: center; border-radius: 6px; color: var(--warning); background: var(--warning-soft); font: 700 9px/1.4 \"Noto Sans SC Variable\", \"Microsoft YaHei\", sans-serif; } .ds-task-card h3 { margin: 10px 0 5px; font: 650 13px/1.45 \"Manrope Variable\", \"Noto Sans SC Variable\", sans-serif; } .ds-task-card p { margin: 0; color: var(--ink-muted); font: 400 10px/1.6 \"Noto Sans SC Variable\", \"Microsoft YaHei\", sans-serif; }"
+    },
+    {
+      "name": "Command Search",
+      "kind": "custom",
+      "refersTo": "input",
+      "description": "A centered keyboard-friendly search surface for cross-record retrieval.",
+      "html": "<div class=\"ds-command\"><div class=\"ds-command-input\"><span aria-hidden=\"true\">⌕</span><input placeholder=\"输入标题、编号、关键词或研究方向\" /><kbd>Ctrl K</kbd></div><div class=\"ds-command-hint\">输入至少两个字符…</div></div>",
+      "css": ".ds-command { width: min(680px, calc(100vw - 30px)); max-height: 68vh; overflow: hidden; border: 1px solid var(--line-strong); border-radius: 16px; color: var(--ink); background: var(--surface); box-shadow: 0 30px 80px rgba(0,14,33,.32); } .ds-command-input { height: 60px; padding: 0 14px 0 19px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--line); } .ds-command-input input { min-height: 0; padding: 0; border: 0; outline: 0; box-shadow: none; background: transparent; font: 400 16px/1.6 \"Noto Sans SC Variable\", \"Microsoft YaHei\", sans-serif; } .ds-command-input kbd { margin-left: auto; padding: 2px 6px; border: 1px solid var(--line); border-radius: 5px; color: var(--ink-subtle); background: var(--surface-2); font: 400 11px/1.4 \"Manrope Variable\", sans-serif; } .ds-command-hint { padding: 45px 20px; color: var(--ink-subtle); text-align: center; font: 400 12px/1.6 \"Noto Sans SC Variable\", \"Microsoft YaHei\", sans-serif; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Signal Console",
+    "overview": "电研工作台 is a calm, precise operating surface for a power-systems researcher. The visual language treats attention like an engineering signal: deep navy establishes a stable frame, electric cyan marks the live path, and cool paper surfaces keep dense records readable. It is a working dashboard, not a promotional page; hierarchy and evidence outrank decoration.\n\nThe default light theme uses tonal layering, compact controls, and restrained borders to make deadlines, risk, progress, and linked evidence easy to scan. Dark mode keeps the same information architecture while shifting the paper and surfaces into a blue-black range with brighter text and cyan. No photographic or illustrative imagery is part of the system: icons, signal bars, progress tracks, and CSS geometry are sufficient for this operational data UI.",
+    "keyCharacteristics": [
+      "Action before analytics: deadlines and risk lead aggregate output counts.",
+      "Deep navy structure with an electric cyan signal accent.",
+      "Cool, low-contrast surfaces and thin dividers instead of ornamental decoration.",
+      "Chinese-first readability with Manrope numerals and compact metadata.",
+      "Zero-image interface: represent research state with data, icons, and geometry."
+    ],
+    "rules": [
+      { "name": "The Signal-First Rule", "body": "Cyan is a signal, not a wallpaper: reserve it for active navigation, links, controls, progress, focus, and meaningful status.", "section": "colors" },
+      { "name": "The Numeric Clarity Rule", "body": "Use Manrope for prominent counts and tabular numerals, and never rely on color alone to communicate a deadline, priority, or completion state.", "section": "typography" },
+      { "name": "The Tonal-Depth Rule", "body": "Establish hierarchy with surface, line, and spacing first; use a shadow only when an element is genuinely lifted or transient.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep the light theme as the default and preserve the same semantic roles when adding dark-mode tokens.",
+      "Do lead dashboard surfaces with deadlines, risk, and next actions before aggregate counts.",
+      "Do use cyan sparingly for active state, links, progress, focus, and signal-bearing icons.",
+      "Do preserve Chinese readability, visible focus, keyboard operation, and 200% text-zoom behavior.",
+      "Do use icons, dividers, progress, and CSS geometry to communicate power-systems context; this UI intentionally ships with zero images.",
+      "Do respect reduced-motion preferences; transitions and skeleton shimmer must collapse to near-instant motion."
+    ],
+    "donts": [
+      "Don't add stock photography, decorative hero illustrations, or image-heavy backgrounds to operational screens.",
+      "Don't use cyan as a large decorative fill or as the only distinction between status states.",
+      "Don't replace the action-first dashboard hierarchy with a marketing-style hero or oversized visualization.",
+      "Don't shrink tables, kanban columns, or form controls below their readable widths; allow the established horizontal scroll behavior.",
+      "Don't introduce sharp corners, excessive pills, heavy gradients, or unscoped shadows that compete with the signal hierarchy."
+    ]
+  }
+}
