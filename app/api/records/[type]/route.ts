@@ -19,7 +19,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ typ
   const where: string[] = [archived ? "archived_at IS NOT NULL" : "archived_at IS NULL"];
   const values: unknown[] = [];
   if (query) { where.push("(title LIKE ? OR COALESCE(notes, '') LIKE ? OR COALESCE(keywords, '') LIKE ?)"); values.push(`%${query}%`, `%${query}%`, `%${query}%`); }
-  if (status) { where.push("status = ?"); values.push(status); }
+  if (status && type !== "artifacts") { where.push("status = ?"); values.push(status); }
   values.push(limit);
   const rows = sqlite.prepare(`SELECT * FROM ${recordTables[type]} WHERE ${where.join(" AND ")} ORDER BY updated_at DESC LIMIT ?`).all(...values) as Record<string, unknown>[];
   return Response.json({ items: rows.map((row) => fromDatabase(type, row)), count: rows.length });
