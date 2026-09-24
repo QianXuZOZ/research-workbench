@@ -200,3 +200,93 @@ Project
 - **Artifact**：MATLAB、PSCAD、数据集、图、文档、GitHub 仓库或外部文件路径。对于大文件，优先使用路径/仓库/URL 引用，而不是全部上传进容器。
 
 备份 schema v2 会包含上述科研过程表、版本历史与晋升证据。恢复逻辑仍兼容旧的 v1 完整备份。
+
+
+## GHCR 镜像发布与 1Panel 部署
+
+仓库包含 `.github/workflows/publish-ghcr.yml`。每次 `main` 分支更新后，GitHub Actions 会自动构建并发布 Docker 镜像：
+
+```text
+ghcr.io/qianxuzoz/research-workbench:latest
+ghcr.io/qianxuzoz/research-workbench:main
+ghcr.io/qianxuzoz/research-workbench:sha-<commit>
+```
+
+推送 `v1.2.3` 这类 Git tag 时，还会生成：
+
+```text
+ghcr.io/qianxuzoz/research-workbench:1.2.3
+ghcr.io/qianxuzoz/research-workbench:1.2
+```
+
+### 首次发布
+
+第一次成功运行 **Publish GHCR Image** 后，到 GitHub 个人主页的 **Packages** 中打开 `research-workbench` 容器包。
+
+如果希望 1Panel 无需登录 GHCR 就能拉取镜像，请在 Package settings 中把包的可见性设置为 **Public**。如果保持 Private，则需要先在服务器上使用有 `read:packages` 权限的 GitHub Token 执行 `docker login ghcr.io`。
+
+### 1Panel
+
+在 **容器 → 编排 → 创建 → 编辑** 中，可以直接使用仓库里的 `docker-compose.ghcr.yml`，或粘贴：
+
+```yaml
+services:
+  workbench:
+    image: ghcr.io/qianxuzoz/research-workbench:latest
+    container_name: research-workbench
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:3100:3000"
+
+    environment:
+      DATABASE_PATH: /data/workbench.db
+      UPLOAD_DIR: /data/uploads
+      EXPORT_DIR: /data/exports
+      ADMIN_EMAIL: researcher@example.com
+      ADMIN_INITIAL_PASSWORD: "replace-with-a-long-random-password"
+      SESSION_TTL_HOURS: "12"
+      APP_TIMEZONE: Asia/Hong_Kong
+      MAX_UPLOAD_MB: "100"
+      COOKIE_SECURE: "true"
+      TRUSTED_ORIGIN: "https://research.example.com"
+      MCP_ACCESS_TOKEN: "replace-with-at-least-32-random-characters"
+
+    volumes:
+      - ./data:/data
+
+    security_opt:
+      - no-new-privileges:true
+```
+
+把邮箱、初始密码、域名和 MCP Token 改成真实值后创建编排。
+
+如果暂时只通过 `http://服务器IP:3100` 访问，应临时设置：
+
+```yaml
+COOKIE_SECURE: "false"
+TRUSTED_ORIGIN: "http://服务器IP:3100"
+```
+
+### 更新
+
+`main` 发布新镜像后，在服务器执行：
+
+```bash
+docker compose -f docker-compose.ghcr.yml pull
+docker compose -f docker-compose.ghcr.yml up -d
+```
+
+在 1Panel 中也可以对该编排执行“拉取镜像 / 重建”。
+
+`./data:/data` 保存数据库、附件和导出文件，因此重新创建容器不会删除工作台数据。
+
+### 回滚
+
+每次构建都会保留提交标签，例如：
+
+```text
+ghcr.io/qianxuzoz/research-workbench:sha-8a0212f
+```
+
+需要回滚时，把 Compose 中的 `image:` 从 `:latest` 改成目标 `sha-...` 标签并重新创建容器即可。
