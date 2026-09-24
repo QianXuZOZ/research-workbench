@@ -5,6 +5,7 @@ import { fromDatabase, isRecordType, recordLabels, recordSchemas, recordTables, 
 import { requireApiSession } from "@/lib/security";
 import { calendarDateInTimeZone, normalizeDoi, nowIso, jsonError } from "@/lib/utils";
 import { updateSearchIndex } from "@/lib/search";
+import { listRecordItems } from "@/lib/record-data";
 
 export async function GET(request: NextRequest, context: { params: Promise<{ type: string }> }) {
   const auth = await requireApiSession();
@@ -12,17 +13,13 @@ export async function GET(request: NextRequest, context: { params: Promise<{ typ
   const { type } = await context.params;
   if (!isRecordType(type)) return jsonError("未知记录类型", 404, "NOT_FOUND");
   const params = request.nextUrl.searchParams;
-  const query = params.get("q")?.trim() ?? "";
-  const status = params.get("status")?.trim() ?? "";
-  const archived = params.get("archived") === "true";
-  const limit = Math.min(200, Math.max(1, Number(params.get("limit") ?? 100)));
-  const where: string[] = [archived ? "archived_at IS NOT NULL" : "archived_at IS NULL"];
-  const values: unknown[] = [];
-  if (query) { where.push("(title LIKE ? OR COALESCE(notes, '') LIKE ? OR COALESCE(keywords, '') LIKE ?)"); values.push(`%${query}%`, `%${query}%`, `%${query}%`); }
-  if (status && type !== "artifacts") { where.push("status = ?"); values.push(status); }
-  values.push(limit);
-  const rows = sqlite.prepare(`SELECT * FROM ${recordTables[type]} WHERE ${where.join(" AND ")} ORDER BY updated_at DESC LIMIT ?`).all(...values) as Record<string, unknown>[];
-  return Response.json({ items: rows.map((row) => fromDatabase(type, row)), count: rows.length });
+  const items = listRecordItems(type, {
+    query: params.get("q")?.trim() ?? "",
+    status: params.get("status")?.trim() ?? "",
+    archived: params.get("archived") === "true",
+    limit: Math.min(200, Math.max(1, Number(params.get("limit") ?? 100))),
+  });
+  return Response.json({ items, count: items.length });
 }
 
 export async function POST(request: NextRequest, context: { params: Promise<{ type: string }> }) {

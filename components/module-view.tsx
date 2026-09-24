@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Archive, ArchiveRestore, BookUp2, CheckSquare2, ChevronRight, FilePlus2, FolderKanban, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { apiFetch, formatDate } from "@/lib/client-api";
@@ -11,9 +11,11 @@ import { BibtexImport } from "@/components/bibtex-import";
 
 type Item = Record<string, unknown> & { id: string; title: string };
 
-export function ModuleView({ config }: { config: ModuleConfig }) {
-  const [items, setItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState(true);
+const relationCache = new Map<string, Item[]>();
+
+export function ModuleView({ config, initialItems }: { config: ModuleConfig; initialItems: Item[] }) {
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
@@ -26,6 +28,7 @@ export function ModuleView({ config }: { config: ModuleConfig }) {
   const [formError, setFormError] = useState("");
   const [importOpen, setImportOpen] = useState(false);
   const [relationOptions, setRelationOptions] = useState<Record<string, Item[]>>({});
+  const initialLoadSkipped = useRef(false);
 
   const statusMap = useMemo(() => Object.fromEntries(config.statusOptions), [config]);
   const relationFields = useMemo(() => config.fields.filter((field) => field.relation), [config]);
@@ -42,7 +45,30 @@ export function ModuleView({ config }: { config: ModuleConfig }) {
       .catch((e) => { setError(e.message); setLoading(false); });
   }
 
+  async function ensureRelationOptions() {
+    if (!relationFields.length) return;
+    const byType = new Map<string, Promise<Item[]>>();
+    for (const field of relationFields) {
+      const type = field.relation!.type;
+      if (!byType.has(type)) {
+        const cached = relationCache.get(type);
+        byType.set(type, cached
+          ? Promise.resolve(cached)
+          : apiFetch<{ items: Item[] }>(`/api/records/${type}?limit=200`).then((data) => {
+              relationCache.set(type, data.items);
+              return data.items;
+            }));
+      }
+    }
+    const next: Record<string, Item[]> = {};
+    await Promise.all(relationFields.map(async (field) => {
+      next[field.key] = await byType.get(field.relation!.type)!;
+    }));
+    setRelationOptions(next);
+  }
+
   function openCreate(overrides: Record<string, string> = {}) {
+    void ensureRelationOptions();
     setEditing(null);
     setForm({ ...initialForm(config), ...overrides });
     setFormError("");
@@ -50,6 +76,7 @@ export function ModuleView({ config }: { config: ModuleConfig }) {
   }
 
   function openEdit(item: Item) {
+    void ensureRelationOptions();
     setEditing(item);
     setForm(Object.fromEntries(config.fields.map((field) => [field.key, item[field.key] == null ? "" : String(item[field.key])])));
     setFormError("");
@@ -91,29 +118,23 @@ export function ModuleView({ config }: { config: ModuleConfig }) {
     setForm(next);
   }
 
-  function relationLabel(fieldKey: string, value: unknown) {
+  function relationLabel(field: FieldConfig, item: Item) {
+    const value = item[field.key];
     if (!value) return "—";
-    const option = (relationOptions[fieldKey] ?? []).find((item) => item.id === String(value));
+    const serverTitle = item[`${field.key}Title`];
+    if (serverTitle) return String(serverTitle);
+    const option = (relationOptions[field.key] ?? []).find((candidate) => candidate.id === String(value));
     return option?.title ?? String(value).slice(0, 8);
   }
 
   useEffect(() => {
-    const timer = setTimeout(load, 180);
-    return () => clearTimeout(timer);
+    if (!initialLoadSkipped.current) {
+      initialLoadSkipped.current = true;
+      return;
+    }
+    const timer = window.setTimeout(load, query ? 180 : 0);
+    return () => window.clearTimeout(timer);
   }, [query, status, archived, config.type]);
-
-  useEffect(() => {
-    let cancelled = false;
-    Promise.all(relationFields.map(async (field) => {
-      const data = await apiFetch<{ items: Item[] }>(`/api/records/${field.relation!.type}?limit=200`);
-      return [field.key, data.items] as const;
-    })).then((entries) => {
-      if (!cancelled) setRelationOptions(Object.fromEntries(entries));
-    }).catch(() => {
-      if (!cancelled) setRelationOptions({});
-    });
-    return () => { cancelled = true; };
-  }, [config.type, relationFields]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -140,6 +161,7 @@ export function ModuleView({ config }: { config: ModuleConfig }) {
         method: editing ? "PATCH" : "POST",
         body: JSON.stringify(payload),
       });
+      relationCache.delete(config.type);
       setSheetOpen(false);
       load();
     } catch (e) {
@@ -151,12 +173,14 @@ export function ModuleView({ config }: { config: ModuleConfig }) {
 
   async function archive(item: Item, value = true) {
     await apiFetch(`/api/records/${config.type}/${item.id}`, { method: "PATCH", body: JSON.stringify({ archived: value }) });
+    relationCache.delete(config.type);
     load();
   }
 
   async function remove(item: Item) {
     if (!confirm(`确定永久删除“${item.title}”？相关任务、附件和关联也会删除。`)) return;
     await apiFetch(`/api/records/${config.type}/${item.id}`, { method: "DELETE" });
+    relationCache.delete(config.type);
     load();
   }
 
@@ -189,7 +213,7 @@ export function ModuleView({ config }: { config: ModuleConfig }) {
         {config.columns.map((column, index) => {
           const relationField = config.fields.find((field) => field.key === column.key && field.relation);
           return <td key={column.key}>{index === 0 ? <Link className="record-title" href={`/${config.type}/${item.id}`}><span>{String(item[column.key] ?? "未命名")}</span>{Boolean(item.keywords) && <small>{String(item.keywords).split(/[;；,，]/).slice(0, 2).join(" · ")}</small>}</Link> :
-            relationField ? <span className="relation-cell">{relationLabel(relationField.key, item[column.key])}</span> :
+            relationField ? <span className="relation-cell">{relationLabel(relationField, item)}</span> :
             column.key === "status" ? <span className={`status-badge status-${item.status}`}>{statusMap[String(item.status)] ?? String(item.status)}</span> :
             column.key.toLowerCase().includes("date") || column.key.endsWith("At") ? formatDate(String(item[column.key] ?? "")) :
             column.key === "progress" ? <span className="cell-progress"><i><b style={{ width: `${Number(item.progress)}%` }} /></i>{Number(item.progress)}%</span> :

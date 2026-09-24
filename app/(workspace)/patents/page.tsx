@@ -1,2 +1,6 @@
-import { ModuleView } from "@/components/module-view"; import { modules } from "@/lib/module-config";
-export default function PatentsPage() { return <ModuleView config={modules.patents} />; }
+import { RecordModulePage } from "@/components/record-module-page";
+import { modules } from "@/lib/module-config";
+
+export default function Page() {
+  return <RecordModulePage config={modules.patents} />;
+}
