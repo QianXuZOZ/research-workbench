@@ -248,3 +248,36 @@ input[type="checkbox"] { width: 17px; height: 17px; min-height: auto; accent-col
 .research-module-links{margin-top:28px}.research-module-links>header{margin-bottom:12px}.research-module-links>header h2{margin:0 0 3px;font-size:17px}.research-module-links>header p{margin:0;color:var(--ink-2);font-size:12px}
 .relation-cell{font-weight:600;color:var(--ink)}
 @media(max-width:900px){.research-chain-toolbar{align-items:stretch;flex-direction:column}.research-project-meta{grid-template-columns:auto auto auto}.research-project-summary{align-items:flex-start;flex-direction:column}.research-chain-board{grid-template-columns:repeat(6,210px)}}
+
+
+/* Light sidebar polish */
+:root:not([data-theme="dark"]) .sidebar {
+  color: var(--ink);
+  background: #f8fafc;
+  border-right: 1px solid var(--line);
+  box-shadow: 8px 0 30px rgba(25, 48, 76, .035);
+}
+:root:not([data-theme="dark"]) .sidebar::after { display: none; }
+:root:not([data-theme="dark"]) .brand-lockup { color: #17304f; }
+:root:not([data-theme="dark"]) .brand-mark { color: #07575f; background: #dff5f3; box-shadow: none; }
+:root:not([data-theme="dark"]) .main-nav a { color: #65758a; }
+:root:not([data-theme="dark"]) .main-nav a:hover { color: #17304f; background: #eef3f7; }
+:root:not([data-theme="dark"]) .main-nav a.active { color: #075f66; background: #e2f4f2; }
+:root:not([data-theme="dark"]) .main-nav a.active svg { color: #07848a; }
+:root:not([data-theme="dark"]) .nav-current { right: -14px; background: #11969a; }
+:root:not([data-theme="dark"]) .user-chip { border-top-color: var(--line); }
+:root:not([data-theme="dark"]) .user-chip strong { color: #213752; }
+:root:not([data-theme="dark"]) .user-chip span { color: #7a899a; }
+:root:not([data-theme="dark"]) .user-chip .icon-button { color: #7a899a; }
+:root:not([data-theme="dark"]) .user-chip .icon-button:hover { color: #17304f; background: #e9eff4; }
+.sidebar-spacer { margin-top: auto; }
+.user-chip .avatar { flex: 0 0 auto; overflow: hidden; }
+.user-chip .avatar-image { object-fit: cover; display: block; }
+.avatar-settings { margin-bottom: 24px; padding: 16px; display: flex; align-items: center; gap: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); }
+.avatar-preview { width: 76px; height: 76px; flex: 0 0 auto; overflow: hidden; display: grid; place-items: center; border-radius: 20px; color: var(--cyan); background: var(--cyan-soft); font: 750 24px/1 "Manrope Variable", sans-serif; }
+.avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+.avatar-settings>div:last-child { min-width: 0; }
+.avatar-settings strong { font-size: 14px; }
+.avatar-settings p { margin: 3px 0 10px; color: var(--ink-2); font-size: 12px; }
+.avatar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+@media(max-width:700px){.avatar-settings{align-items:flex-start;flex-direction:column}}
