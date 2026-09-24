@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Beaker, Boxes, FlaskConical, Lightbulb, Network, PackageSearch } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
+import { ResearchGraph } from "@/components/research-graph";
 
 const items = [
   ["/questions", "研究问题", "明确需要回答的关键未知量与验证标准", Lightbulb],
@@ -13,11 +14,15 @@ const items = [
 
 export default function ResearchProcessPage() {
   return <div className="module-page">
-    <PageHeader title="科研过程" description="从研究问题、假设、实验到发现和科研资产，形成可追溯的研究链。" />
-    <div className="research-process-grid">
-      {items.map(([href, title, description, Icon]) => <Link className="process-card" href={href} key={href}>
-        <span><Icon size={22} /></span><div><h2>{title}</h2><p>{description}</p></div>
-      </Link>)}
-    </div>
+    <PageHeader title="科研过程" description="按项目查看研究问题 → 假设 → 实验 → Run → Finding → Artifact 的完整研究链。" />
+    <ResearchGraph />
+    <section className="research-module-links">
+      <header><h2>科研过程模块</h2><p>也可以直接进入某一类记录进行集中管理。</p></header>
+      <div className="research-process-grid">
+        {items.map(([href, title, description, Icon]) => <Link className="process-card" href={href} key={href}>
+          <span><Icon size={22} /></span><div><h2>{title}</h2><p>{description}</p></div>
+        </Link>)}
+      </div>
+    </section>
   </div>;
 }

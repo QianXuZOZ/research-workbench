@@ -2,35 +2,216 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Archive, ArchiveRestore, BookUp2, CheckSquare2, ChevronRight, FilePlus2, FolderKanban, MoreHorizontal, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import { Archive, ArchiveRestore, BookUp2, CheckSquare2, ChevronRight, FilePlus2, FolderKanban, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { apiFetch, formatDate } from "@/lib/client-api";
-import { ModuleConfig, statusLabel } from "@/lib/module-config";
+import { FieldConfig, ModuleConfig, statusLabel } from "@/lib/module-config";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { BibtexImport } from "@/components/bibtex-import";
 
-type Item = Record<string, string | number | null> & { id: string };
+type Item = Record<string, unknown> & { id: string; title: string };
 
 export function ModuleView({ config }: { config: ModuleConfig }) {
-  const [items, setItems] = useState<Item[]>([]); const [loading, setLoading] = useState(true); const [error, setError] = useState(""); const [query, setQuery] = useState(""); const [status, setStatus] = useState(""); const [archived, setArchived] = useState(false); const [selected, setSelected] = useState(new Set<string>());
-  const [sheetOpen, setSheetOpen] = useState(false); const [editing, setEditing] = useState<Item | null>(null); const [form, setForm] = useState<Record<string, string>>(initialForm(config)); const [saving, setSaving] = useState(false); const [formError, setFormError] = useState(""); const [importOpen, setImportOpen] = useState(false);
+  const [items, setItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("");
+  const [archived, setArchived] = useState(false);
+  const [selected, setSelected] = useState(new Set<string>());
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [editing, setEditing] = useState<Item | null>(null);
+  const [form, setForm] = useState<Record<string, string>>(initialForm(config));
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [importOpen, setImportOpen] = useState(false);
+  const [relationOptions, setRelationOptions] = useState<Record<string, Item[]>>({});
+
   const statusMap = useMemo(() => Object.fromEntries(config.statusOptions), [config]);
-  function load() { setLoading(true); setError(""); const params = new URLSearchParams(); if (query) params.set("q", query); if (status) params.set("status", status); if (archived) params.set("archived", "true"); apiFetch<{ items: Item[] }>(`/api/records/${config.type}?${params}`).then((data) => { setItems(data.items); setLoading(false); }).catch((e) => { setError(e.message); setLoading(false); }); }
-  useEffect(() => { const timer = setTimeout(load, 180); return () => clearTimeout(timer); }, [query, status, archived, config.type]);
-  useEffect(() => { const params = new URLSearchParams(window.location.search); if (params.get("new") === "1") openCreate(); if (config.type === "literature" && params.get("import") === "1") setImportOpen(true); }, []);
-  function openCreate() { setEditing(null); setForm(initialForm(config)); setFormError(""); setSheetOpen(true); }
-  function openEdit(item: Item) { setEditing(item); setForm(Object.fromEntries(config.fields.map((field) => [field.key, item[field.key] == null ? "" : String(item[field.key])]))); setFormError(""); setSheetOpen(true); }
-  async function save(event: React.FormEvent) { event.preventDefault(); setSaving(true); setFormError(""); try { const payload = Object.fromEntries(config.fields.map((field) => [field.key, field.type === "number" ? (form[field.key] === "" ? null : Number(form[field.key])) : form[field.key] || null])); await apiFetch(editing ? `/api/records/${config.type}/${editing.id}` : `/api/records/${config.type}`, { method: editing ? "PATCH" : "POST", body: JSON.stringify(payload) }); setSheetOpen(false); load(); } catch (e) { setFormError(e instanceof Error ? e.message : "保存失败"); } finally { setSaving(false); } }
-  async function archive(item: Item, value = true) { await apiFetch(`/api/records/${config.type}/${item.id}`, { method: "PATCH", body: JSON.stringify({ archived: value }) }); load(); }
-  async function remove(item: Item) { if (!confirm(`确定永久删除“${item.title}”？相关任务、附件和关联也会删除。`)) return; await apiFetch(`/api/records/${config.type}/${item.id}`, { method: "DELETE" }); load(); }
-  async function batchArchive() { await Promise.all([...selected].map((id) => apiFetch(`/api/records/${config.type}/${id}`, { method: "PATCH", body: JSON.stringify({ archived: true }) }))); setSelected(new Set()); load(); }
+  const relationFields = useMemo(() => config.fields.filter((field) => field.relation), [config]);
+
+  function load() {
+    setLoading(true);
+    setError("");
+    const params = new URLSearchParams();
+    if (query) params.set("q", query);
+    if (status) params.set("status", status);
+    if (archived) params.set("archived", "true");
+    apiFetch<{ items: Item[] }>(`/api/records/${config.type}?${params}`)
+      .then((data) => { setItems(data.items); setLoading(false); })
+      .catch((e) => { setError(e.message); setLoading(false); });
+  }
+
+  function openCreate(overrides: Record<string, string> = {}) {
+    setEditing(null);
+    setForm({ ...initialForm(config), ...overrides });
+    setFormError("");
+    setSheetOpen(true);
+  }
+
+  function openEdit(item: Item) {
+    setEditing(item);
+    setForm(Object.fromEntries(config.fields.map((field) => [field.key, item[field.key] == null ? "" : String(item[field.key])])));
+    setFormError("");
+    setSheetOpen(true);
+  }
+
+  function relationItems(field: FieldConfig) {
+    const all = relationOptions[field.key] ?? [];
+    const dependency = field.relation?.dependsOn;
+    if (!dependency) return all;
+    const parentValue = form[dependency.formKey];
+    if (!parentValue) return all;
+    return all.filter((item) => String(item[dependency.targetKey] ?? "") === parentValue);
+  }
+
+  function updateFormField(field: FieldConfig, value: string) {
+    const next = { ...form, [field.key]: value };
+
+    if (field.relation?.dependsOn && value) {
+      const chosen = (relationOptions[field.key] ?? []).find((item) => item.id === value);
+      const inherited = chosen?.[field.relation.dependsOn.targetKey];
+      if (inherited) next[field.relation.dependsOn.formKey] = String(inherited);
+    }
+
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const candidate of relationFields) {
+        const dependency = candidate.relation?.dependsOn;
+        if (!dependency || !next[candidate.key]) continue;
+        const chosen = (relationOptions[candidate.key] ?? []).find((item) => item.id === next[candidate.key]);
+        const expected = next[dependency.formKey];
+        if (expected && chosen && String(chosen[dependency.targetKey] ?? "") !== expected) {
+          next[candidate.key] = "";
+          changed = true;
+        }
+      }
+    }
+    setForm(next);
+  }
+
+  function relationLabel(fieldKey: string, value: unknown) {
+    if (!value) return "—";
+    const option = (relationOptions[fieldKey] ?? []).find((item) => item.id === String(value));
+    return option?.title ?? String(value).slice(0, 8);
+  }
+
+  useEffect(() => {
+    const timer = setTimeout(load, 180);
+    return () => clearTimeout(timer);
+  }, [query, status, archived, config.type]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all(relationFields.map(async (field) => {
+      const data = await apiFetch<{ items: Item[] }>(`/api/records/${field.relation!.type}?limit=200`);
+      return [field.key, data.items] as const;
+    })).then((entries) => {
+      if (!cancelled) setRelationOptions(Object.fromEntries(entries));
+    }).catch(() => {
+      if (!cancelled) setRelationOptions({});
+    });
+    return () => { cancelled = true; };
+  }, [config.type, relationFields]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("new") === "1") {
+      const overrides = Object.fromEntries(config.fields.flatMap((field) => {
+        const value = params.get(field.key);
+        return value ? [[field.key, value]] : [];
+      }));
+      openCreate(overrides);
+    }
+    if (config.type === "literature" && params.get("import") === "1") setImportOpen(true);
+  }, [config.type]);
+
+  async function save(event: React.FormEvent) {
+    event.preventDefault();
+    setSaving(true);
+    setFormError("");
+    try {
+      const payload = Object.fromEntries(config.fields.map((field) => [
+        field.key,
+        field.type === "number" ? (form[field.key] === "" ? null : Number(form[field.key])) : form[field.key] || null,
+      ]));
+      await apiFetch(editing ? `/api/records/${config.type}/${editing.id}` : `/api/records/${config.type}`, {
+        method: editing ? "PATCH" : "POST",
+        body: JSON.stringify(payload),
+      });
+      setSheetOpen(false);
+      load();
+    } catch (e) {
+      setFormError(e instanceof Error ? e.message : "保存失败");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function archive(item: Item, value = true) {
+    await apiFetch(`/api/records/${config.type}/${item.id}`, { method: "PATCH", body: JSON.stringify({ archived: value }) });
+    load();
+  }
+
+  async function remove(item: Item) {
+    if (!confirm(`确定永久删除“${item.title}”？相关任务、附件和关联也会删除。`)) return;
+    await apiFetch(`/api/records/${config.type}/${item.id}`, { method: "DELETE" });
+    load();
+  }
+
+  async function batchArchive() {
+    await Promise.all([...selected].map((id) => apiFetch(`/api/records/${config.type}/${id}`, { method: "PATCH", body: JSON.stringify({ archived: true }) })));
+    setSelected(new Set());
+    load();
+  }
+
   return <div className="module-page">
-    <PageHeader title={config.title} description={config.description} actions={<>{config.type === "literature" && <button className="button secondary" onClick={() => setImportOpen(true)}><BookUp2 size={16} />导入 BibTeX</button>}<button className="button primary" onClick={openCreate}><Plus size={16} />{config.addLabel}</button></>} />
-    <div className="list-toolbar"><div className="filter-search"><Search size={17} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`搜索${config.singular}…`} /></div>{config.statusOptions.length > 0 && <select value={status} onChange={(e) => setStatus(e.target.value)}><option value="">全部状态</option>{config.statusOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>}<button className={`button toggle ${archived ? "active" : ""}`} onClick={() => setArchived(!archived)}>{archived ? <ArchiveRestore size={16} /> : <Archive size={16} />}{archived ? "查看当前" : "查看归档"}</button>{selected.size > 0 && !archived && <button className="button danger-subtle" onClick={batchArchive}><Archive size={16} />归档 {selected.size} 项</button>}</div>
+    <PageHeader title={config.title} description={config.description} actions={<>
+      {config.type === "literature" && <button className="button secondary" onClick={() => setImportOpen(true)}><BookUp2 size={16} />导入 BibTeX</button>}
+      <button className="button primary" onClick={() => openCreate()}><Plus size={16} />{config.addLabel}</button>
+    </>} />
+
+    <div className="list-toolbar">
+      <div className="filter-search"><Search size={17} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`搜索${config.singular}…`} /></div>
+      {config.statusOptions.length > 0 && <select value={status} onChange={(e) => setStatus(e.target.value)}><option value="">全部状态</option>{config.statusOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>}
+      <button className={`button toggle ${archived ? "active" : ""}`} onClick={() => setArchived(!archived)}>{archived ? <ArchiveRestore size={16} /> : <Archive size={16} />}{archived ? "查看当前" : "查看归档"}</button>
+      {selected.size > 0 && !archived && <button className="button danger-subtle" onClick={batchArchive}><Archive size={16} />归档 {selected.size} 项</button>}
+    </div>
+
     <section className="data-surface">
-      {loading ? <div className="table-skeleton">{[1, 2, 3, 4].map((i) => <span key={i} />)}</div> : error ? <div className="load-error compact"><p>{error}</p><button className="button secondary" onClick={load}>重试</button></div> : items.length ? <div className="record-table-wrap"><table className="record-table"><thead><tr><th className="check-cell"><input type="checkbox" aria-label="全选" checked={selected.size === items.length && items.length > 0} onChange={(e) => setSelected(e.target.checked ? new Set(items.map((item) => item.id)) : new Set())} /></th>{config.columns.map((column) => <th key={column.key}>{column.label}</th>)}<th className="action-cell">操作</th></tr></thead><tbody>{items.map((item) => <tr key={item.id}><td className="check-cell"><input type="checkbox" aria-label={`选择 ${item.title}`} checked={selected.has(item.id)} onChange={(e) => { const next = new Set(selected); e.target.checked ? next.add(item.id) : next.delete(item.id); setSelected(next); }} /></td>{config.columns.map((column, index) => <td key={column.key}>{index === 0 ? <Link className="record-title" href={`/${config.type}/${item.id}`}><span>{String(item[column.key] ?? "未命名")}</span>{item.keywords && <small>{String(item.keywords).split(/[;；,，]/).slice(0, 2).join(" · ")}</small>}</Link> : column.key === "status" ? <span className={`status-badge status-${item.status}`}>{statusMap[String(item.status)] ?? String(item.status)}</span> : column.key.toLowerCase().includes("date") || column.key.endsWith("At") ? formatDate(String(item[column.key] ?? "")) : column.key === "progress" ? <span className="cell-progress"><i><b style={{ width: `${Number(item.progress)}%` }} /></i>{item.progress}%</span> : String(item[column.key] ?? "—")}</td>)}<td className="action-cell"><div className="row-actions"><button className="icon-button" onClick={() => openEdit(item)} aria-label="编辑"><Pencil size={16} /></button><button className="icon-button" onClick={() => archive(item, !archived)} aria-label={archived ? "恢复" : "归档"}>{archived ? <ArchiveRestore size={16} /> : <Archive size={16} />}</button>{archived && <button className="icon-button danger" onClick={() => remove(item)} aria-label="永久删除"><Trash2 size={16} /></button>}<Link className="icon-button" href={`/${config.type}/${item.id}`} aria-label="查看详情"><ChevronRight size={17} /></Link></div></td></tr>)}</tbody></table></div> : <EmptyState icon={config.type === "projects" ? FolderKanban : FilePlus2} title={archived ? "归档中没有记录" : config.emptyTitle} description={archived ? "已归档的记录会保留在这里。" : config.emptyDescription} action={!archived && <button className="button primary" onClick={openCreate}><Plus size={16} />{config.addLabel}</button>} />}
+      {loading ? <div className="table-skeleton">{[1, 2, 3, 4].map((i) => <span key={i} />)}</div> : error ? <div className="load-error compact"><p>{error}</p><button className="button secondary" onClick={load}>重试</button></div> : items.length ? <div className="record-table-wrap"><table className="record-table"><thead><tr>
+        <th className="check-cell"><input type="checkbox" aria-label="全选" checked={selected.size === items.length && items.length > 0} onChange={(e) => setSelected(e.target.checked ? new Set(items.map((item) => item.id)) : new Set())} /></th>
+        {config.columns.map((column) => <th key={column.key}>{column.label}</th>)}
+        <th className="action-cell">操作</th>
+      </tr></thead><tbody>{items.map((item) => <tr key={item.id}>
+        <td className="check-cell"><input type="checkbox" aria-label={`选择 ${item.title}`} checked={selected.has(item.id)} onChange={(e) => { const next = new Set(selected); e.target.checked ? next.add(item.id) : next.delete(item.id); setSelected(next); }} /></td>
+        {config.columns.map((column, index) => {
+          const relationField = config.fields.find((field) => field.key === column.key && field.relation);
+          return <td key={column.key}>{index === 0 ? <Link className="record-title" href={`/${config.type}/${item.id}`}><span>{String(item[column.key] ?? "未命名")}</span>{Boolean(item.keywords) && <small>{String(item.keywords).split(/[;；,，]/).slice(0, 2).join(" · ")}</small>}</Link> :
+            relationField ? <span className="relation-cell">{relationLabel(relationField.key, item[column.key])}</span> :
+            column.key === "status" ? <span className={`status-badge status-${item.status}`}>{statusMap[String(item.status)] ?? String(item.status)}</span> :
+            column.key.toLowerCase().includes("date") || column.key.endsWith("At") ? formatDate(String(item[column.key] ?? "")) :
+            column.key === "progress" ? <span className="cell-progress"><i><b style={{ width: `${Number(item.progress)}%` }} /></i>{Number(item.progress)}%</span> :
+            String(item[column.key] ?? "—")}</td>;
+        })}
+        <td className="action-cell"><div className="row-actions"><button className="icon-button" onClick={() => openEdit(item)} aria-label="编辑"><Pencil size={16} /></button><button className="icon-button" onClick={() => archive(item, !archived)} aria-label={archived ? "恢复" : "归档"}>{archived ? <ArchiveRestore size={16} /> : <Archive size={16} />}</button>{archived && <button className="icon-button danger" onClick={() => remove(item)} aria-label="永久删除"><Trash2 size={16} /></button>}<Link className="icon-button" href={`/${config.type}/${item.id}`} aria-label="查看详情"><ChevronRight size={17} /></Link></div></td>
+      </tr>)}</tbody></table></div> : <EmptyState icon={config.type === "projects" ? FolderKanban : FilePlus2} title={archived ? "归档中没有记录" : config.emptyTitle} description={archived ? "已归档的记录会保留在这里。" : config.emptyDescription} action={!archived && <button className="button primary" onClick={() => openCreate()}><Plus size={16} />{config.addLabel}</button>} />}
     </section>
-    {sheetOpen && <div className="sheet-scrim" onMouseDown={(e) => e.target === e.currentTarget && setSheetOpen(false)}><section className="sheet-panel record-sheet" role="dialog" aria-modal="true" aria-label={editing ? `编辑${config.singular}` : config.addLabel}><header><div><h2>{editing ? `编辑${config.singular}` : config.addLabel}</h2><p>{editing ? "修改后将记录到活动历史。" : "先记录关键信息，细节可以稍后补充。"}</p></div><button className="icon-button" onClick={() => setSheetOpen(false)} aria-label="关闭"><X size={20} /></button></header><form onSubmit={save}><div className="form-grid">{config.fields.map((field) => <label key={field.key} className={field.wide ? "wide" : ""}><span>{field.label}{field.required && <b>*</b>}</span>{field.type === "textarea" ? <textarea value={form[field.key] ?? ""} onChange={(e) => setForm({ ...form, [field.key]: e.target.value })} placeholder={field.placeholder} rows={4} required={field.required} /> : field.type === "select" ? <select value={form[field.key] ?? ""} onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}>{!field.required && <option value="">未设置</option>}{field.options?.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select> : <input type={field.type ?? "text"} value={form[field.key] ?? ""} onChange={(e) => setForm({ ...form, [field.key]: e.target.value })} placeholder={field.placeholder} required={field.required} step={field.type === "number" ? "any" : undefined} />}</label>)}</div>{formError && <p className="form-error" role="alert">{formError}</p>}<footer><button type="button" className="button ghost" onClick={() => setSheetOpen(false)}>取消</button><button className="button primary" disabled={saving}>{saving ? "正在保存…" : <><CheckSquare2 size={16} />保存{config.singular}</>}</button></footer></form></section></div>}
+
+    {sheetOpen && <div className="sheet-scrim" onMouseDown={(e) => e.target === e.currentTarget && setSheetOpen(false)}><section className="sheet-panel record-sheet" role="dialog" aria-modal="true" aria-label={editing ? `编辑${config.singular}` : config.addLabel}>
+      <header><div><h2>{editing ? `编辑${config.singular}` : config.addLabel}</h2><p>{editing ? "修改前的版本会自动保留。" : "先记录关键信息，细节可以稍后补充。"}</p></div><button className="icon-button" onClick={() => setSheetOpen(false)} aria-label="关闭"><X size={20} /></button></header>
+      <form onSubmit={save}><div className="form-grid">{config.fields.map((field) => <label key={field.key} className={field.wide ? "wide" : ""}><span>{field.label}{field.required && <b>*</b>}</span>
+        {field.relation ? <select value={form[field.key] ?? ""} onChange={(e) => updateFormField(field, e.target.value)} required={field.required}>
+          <option value="">未关联</option>
+          {relationItems(field).map((option) => <option key={option.id} value={option.id}>{option.title}{option.status ? ` · ${statusLabel[String(option.status)] ?? String(option.status)}` : ""}</option>)}
+        </select> :
+        field.type === "textarea" ? <textarea value={form[field.key] ?? ""} onChange={(e) => updateFormField(field, e.target.value)} placeholder={field.placeholder} rows={4} required={field.required} /> :
+        field.type === "select" ? <select value={form[field.key] ?? ""} onChange={(e) => updateFormField(field, e.target.value)}>{!field.required && <option value="">未设置</option>}{field.options?.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select> :
+        <input type={field.type ?? "text"} value={form[field.key] ?? ""} onChange={(e) => updateFormField(field, e.target.value)} placeholder={field.placeholder} required={field.required} step={field.type === "number" ? "any" : undefined} />}
+      </label>)}</div>{formError && <p className="form-error" role="alert">{formError}</p>}<footer><button type="button" className="button ghost" onClick={() => setSheetOpen(false)}>取消</button><button className="button primary" disabled={saving}>{saving ? "正在保存…" : <><CheckSquare2 size={16} />保存{config.singular}</>}</button></footer></form>
+    </section></div>}
+
     {config.type === "literature" && <BibtexImport open={importOpen} onClose={() => setImportOpen(false)} onImported={load} />}
   </div>;
 }
