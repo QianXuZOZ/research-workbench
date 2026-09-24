@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   if (!dataEntry || !manifestEntry) return jsonError("备份缺少数据或校验清单", 400, "INVALID_BACKUP");
   let payload: { schemaVersion: number; tables: Record<string, Record<string, unknown>[]> }; let manifest: { schemaVersion: number; files: { path: string; sha256: string }[] };
   try { payload = JSON.parse(dataEntry.getData().toString("utf8")); manifest = JSON.parse(manifestEntry.getData().toString("utf8")); } catch { return jsonError("备份数据格式无效", 400, "INVALID_BACKUP"); }
-  if (payload.schemaVersion !== BACKUP_SCHEMA_VERSION || manifest.schemaVersion !== BACKUP_SCHEMA_VERSION) return jsonError("备份版本与当前程序不兼容", 409, "BACKUP_VERSION_MISMATCH");
+  if (![1, BACKUP_SCHEMA_VERSION].includes(payload.schemaVersion) || ![1, BACKUP_SCHEMA_VERSION].includes(manifest.schemaVersion)) return jsonError("备份版本与当前程序不兼容", 409, "BACKUP_VERSION_MISMATCH");
   for (const item of manifest.files) {
     if (item.path.includes("..") || path.isAbsolute(item.path)) return jsonError("备份包含不安全路径", 400, "INVALID_BACKUP");
     const entry = zip.getEntry(item.path); if (!entry) return jsonError(`备份缺少 ${item.path}`, 400, "INVALID_BACKUP");
