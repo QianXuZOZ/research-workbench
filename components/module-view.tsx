@@ -161,6 +161,7 @@ export function ModuleView({ config, initialItems }: { config: ModuleConfig; ini
         method: editing ? "PATCH" : "POST",
         body: JSON.stringify(payload),
       });
+      relationCache.delete(config.type);
       setSheetOpen(false);
       load();
     } catch (e) {
@@ -172,12 +173,14 @@ export function ModuleView({ config, initialItems }: { config: ModuleConfig; ini
 
   async function archive(item: Item, value = true) {
     await apiFetch(`/api/records/${config.type}/${item.id}`, { method: "PATCH", body: JSON.stringify({ archived: value }) });
+    relationCache.delete(config.type);
     load();
   }
 
   async function remove(item: Item) {
     if (!confirm(`确定永久删除“${item.title}”？相关任务、附件和关联也会删除。`)) return;
     await apiFetch(`/api/records/${config.type}/${item.id}`, { method: "DELETE" });
+    relationCache.delete(config.type);
     load();
   }
 
