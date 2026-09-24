@@ -6,5 +6,5 @@ import { RecordDetail } from "@/components/record-detail";
 export function RecordDetailPage({ config, id }: { config: ModuleConfig; id: string }) {
   const initialData = getRecordDetailData(config.type, id);
   if (!initialData) notFound();
-  return <RecordDetail config={config} id={id} initialData={initialData} />;
+  return <RecordDetail key={`${config.type}:${id}`} config={config} id={id} initialData={initialData} />;
 }
