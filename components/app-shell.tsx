@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Activity, Award, Beaker, BookMarked, BookOpenText, BriefcaseBusiness, CalendarCheck2, ChevronRight, FileBadge2, GraduationCap, LayoutDashboard, LogOut, Menu, Moon, Search, Settings, Sun, X, Zap } from "lucide-react";
+import { Award, Beaker, BookMarked, BookOpenText, BriefcaseBusiness, CalendarCheck2, ChevronRight, FileBadge2, GraduationCap, LayoutDashboard, LogOut, Menu, Moon, Search, Settings, Sun, X, Zap } from "lucide-react";
 import { apiFetch } from "@/lib/client-api";
 import { WebMcpTools } from "@/components/webmcp-tools";
 
@@ -14,7 +14,7 @@ const nav = [
 
 const entityPath: Record<string, string> = { projects: "projects", papers: "papers", literature: "literature", questions: "questions", hypotheses: "hypotheses", experiments: "experiments", runs: "runs", findings: "findings", artifacts: "artifacts", patents: "patents", growth: "growth", tasks: "tasks" };
 
-export function AppShell({ children, email, displayName, csrf, mustChangePassword, timeZone }: { children: React.ReactNode; email: string; displayName: string; csrf: string; mustChangePassword: boolean; timeZone: string }) {
+export function AppShell({ children, email, displayName, avatarUrl, csrf, mustChangePassword, timeZone }: { children: React.ReactNode; email: string; displayName: string; avatarUrl: string | null; csrf: string; mustChangePassword: boolean; timeZone: string }) {
   const pathname = usePathname(); const router = useRouter(); const [mobileOpen, setMobileOpen] = useState(false); const [dark, setDark] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false); const [query, setQuery] = useState(""); const [results, setResults] = useState<{ entityType: string; entityId: string; title: string; snippet: string }[]>([]); const searchRef = useRef<HTMLInputElement>(null);
   useEffect(() => { const saved = localStorage.getItem("theme"); const enabled = saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches); setDark(enabled); document.documentElement.dataset.theme = enabled ? "dark" : "light"; }, []);
@@ -31,8 +31,8 @@ export function AppShell({ children, email, displayName, csrf, mustChangePasswor
         <nav className="main-nav" aria-label="主导航">
           {nav.map(([href, label, Icon]) => <Link key={href} href={href} className={pathname.startsWith(href) ? "active" : ""} onClick={() => setMobileOpen(false)}><Icon size={18} /><span>{label}</span>{pathname.startsWith(href) && <span className="nav-current" />}</Link>)}
         </nav>
-        <div className="sidebar-status"><Activity size={16} /><div><strong>数据留在本机</strong><span>SQLite 与私有附件库</span></div></div>
-        <div className="user-chip"><span className="avatar">{initials}</span><div><strong>{displayName}</strong><span>{email}</span></div><button className="icon-button" onClick={logout} aria-label="退出登录" title="退出登录"><LogOut size={17} /></button></div>
+        <div className="sidebar-spacer" />
+        <div className="user-chip">{avatarUrl ? <img className="avatar avatar-image" src={avatarUrl} alt={displayName} /> : <span className="avatar">{initials}</span>}<div><strong>{displayName}</strong><span>{email}</span></div><Link className="icon-button" href="/settings" aria-label="个人设置" title="个人设置"><Settings size={16} /></Link><button className="icon-button" onClick={logout} aria-label="退出登录" title="退出登录"><LogOut size={17} /></button></div>
       </aside>
       {mobileOpen && <button className="nav-scrim" aria-label="关闭导航" onClick={() => setMobileOpen(false)} />}
       <div className="workspace">
