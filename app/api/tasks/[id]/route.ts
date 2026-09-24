@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { sqlite } from "@/lib/db";
-import { taskSchema } from "@/app/api/tasks/route";
+import { taskSchema } from "@/lib/tasks";
 import { logActivity } from "@/lib/activity";
 import { requireApiSession } from "@/lib/security";
 import { deleteSearchIndex, updateSearchIndex } from "@/lib/search";
