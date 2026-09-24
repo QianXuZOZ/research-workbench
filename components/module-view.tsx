@@ -188,7 +188,7 @@ export function ModuleView({ config }: { config: ModuleConfig }) {
         <td className="check-cell"><input type="checkbox" aria-label={`选择 ${item.title}`} checked={selected.has(item.id)} onChange={(e) => { const next = new Set(selected); e.target.checked ? next.add(item.id) : next.delete(item.id); setSelected(next); }} /></td>
         {config.columns.map((column, index) => {
           const relationField = config.fields.find((field) => field.key === column.key && field.relation);
-          return <td key={column.key}>{index === 0 ? <Link className="record-title" href={`/${config.type}/${item.id}`}><span>{String(item[column.key] ?? "未命名")}</span>{item.keywords && <small>{String(item.keywords).split(/[;；,，]/).slice(0, 2).join(" · ")}</small>}</Link> :
+          return <td key={column.key}>{index === 0 ? <Link className="record-title" href={`/${config.type}/${item.id}`}><span>{String(item[column.key] ?? "未命名")}</span>{Boolean(item.keywords) && <small>{String(item.keywords).split(/[;；,，]/).slice(0, 2).join(" · ")}</small>}</Link> :
             relationField ? <span className="relation-cell">{relationLabel(relationField.key, item[column.key])}</span> :
             column.key === "status" ? <span className={`status-badge status-${item.status}`}>{statusMap[String(item.status)] ?? String(item.status)}</span> :
             column.key.toLowerCase().includes("date") || column.key.endsWith("At") ? formatDate(String(item[column.key] ?? "")) :
