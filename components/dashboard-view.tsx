@@ -24,7 +24,7 @@ export function DashboardView() {
   const [data, setData] = useState<DashboardData | null>(null); const [error, setError] = useState("");
   function load() { setError(""); apiFetch<DashboardData>("/api/dashboard").then(setData).catch((e) => setError(e.message)); }
   useEffect(load, []);
-  if (error) return <div className="load-error"><ShieldAlert size={28} /><h2>驾驶舱暂时无法载入</h2><p>{error}</p><button className="button secondary" onClick={load}><RefreshCw size={16} />重试</button></div>;
+  if (error) return <div className="load-error"><ShieldAlert size={28} /><h2>总览暂时无法载入</h2><p>{error}</p><button className="button secondary" onClick={load}><RefreshCw size={16} />重试</button></div>;
   if (!data) return <div className="dashboard-skeleton"><div /><div /><div /><div /></div>;
   const overdue = Number(data.taskCounts.overdue ?? 0); const week = Number(data.taskCounts.due_week ?? 0); const done = Number(data.taskCounts.done ?? 0); const total = Number(data.taskCounts.total ?? 0);
   const completion = total ? Math.round((done / total) * 100) : 0;
