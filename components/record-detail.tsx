@@ -8,12 +8,24 @@ import { ModuleConfig, modules, statusLabel } from "@/lib/module-config";
 
 type Detail = { item: Record<string, unknown>; tasks: Record<string, unknown>[]; revisions: { id: string; actor: string; snapshot: string; createdAt: string }[]; attachments: { id: string; originalName: string; mimeType: string; size: number; label: string | null; createdAt: string }[]; links: Record<string, unknown>[] };
 
-export function RecordDetail({ config, id }: { config: ModuleConfig; id: string }) {
-  const [data, setData] = useState<Detail | null>(null); const [error, setError] = useState(""); const [taskTitle, setTaskTitle] = useState(""); const [taskDue, setTaskDue] = useState(""); const [busy, setBusy] = useState(false); const fileRef = useRef<HTMLInputElement>(null);
+export function RecordDetail({ config, id, initialData }: { config: ModuleConfig; id: string; initialData: Detail }) {
+  const [data, setData] = useState<Detail | null>(initialData); const [error, setError] = useState(""); const [taskTitle, setTaskTitle] = useState(""); const [taskDue, setTaskDue] = useState(""); const [busy, setBusy] = useState(false); const fileRef = useRef<HTMLInputElement>(null);
   const [linkType, setLinkType] = useState(config.type === "projects" ? "papers" : "projects"); const [linkOptions, setLinkOptions] = useState<Record<string, unknown>[]>([]); const [linkId, setLinkId] = useState("");
   function load() { apiFetch<Detail>(`/api/records/${config.type}/${id}`).then(setData).catch((e) => setError(e.message)); }
-  useEffect(load, [config.type, id]);
-  useEffect(() => { if (linkType === config.type) return; apiFetch<{ items: Record<string, unknown>[] }>(`/api/records/${linkType}`).then((result) => { setLinkOptions(result.items); setLinkId(""); }).catch(() => setLinkOptions([])); }, [linkType, config.type]);
+  useEffect(() => {
+    if (linkType === config.type) return;
+    let cancelled = false;
+    const run = () => apiFetch<{ items: Record<string, unknown>[] }>(`/api/records/${linkType}?limit=100`)
+      .then((result) => { if (!cancelled) { setLinkOptions(result.items); setLinkId(""); } })
+      .catch(() => { if (!cancelled) setLinkOptions([]); });
+    const windowWithIdle = window as Window & { requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
+    if (windowWithIdle.requestIdleCallback) {
+      const handle = windowWithIdle.requestIdleCallback(run, { timeout: 800 });
+      return () => { cancelled = true; windowWithIdle.cancelIdleCallback?.(handle); };
+    }
+    const handle = window.setTimeout(run, 200);
+    return () => { cancelled = true; window.clearTimeout(handle); };
+  }, [linkType, config.type]);
   const visibleFields = useMemo(() => config.fields.filter((field) => data?.item[field.key] != null && String(data.item[field.key]) !== ""), [config.fields, data]);
   async function addTask(event: React.FormEvent) { event.preventDefault(); if (!taskTitle.trim()) return; setBusy(true); try { await apiFetch("/api/tasks", { method: "POST", body: JSON.stringify({ title: taskTitle, dueAt: taskDue || null, entityType: config.type, entityId: id, status: "todo", priority: "medium", progress: 0, kind: "task" }) }); setTaskTitle(""); setTaskDue(""); load(); } finally { setBusy(false); } }
   async function toggleTask(task: Record<string, unknown>) { await apiFetch(`/api/tasks/${task.id}`, { method: "PATCH", body: JSON.stringify({ status: task.status === "done" ? "todo" : "done" }) }); load(); }
