@@ -5,8 +5,8 @@ import { PassThrough } from "node:stream";
 import { createHash } from "node:crypto";
 import { sqlite } from "@/lib/db";
 
-export const BACKUP_SCHEMA_VERSION = 1;
-export const backupTables = ["projects", "papers", "literature_items", "patents", "growth_items", "tasks", "promotion_cycles", "promotion_metrics", "attachments", "tags", "record_tags", "research_links", "activity_logs", "settings"] as const;
+export const BACKUP_SCHEMA_VERSION = 2;
+export const backupTables = ["projects", "papers", "literature_items", "research_questions", "hypotheses", "experiments", "experiment_runs", "findings", "artifacts", "patents", "growth_items", "tasks", "promotion_cycles", "promotion_metrics", "promotion_evidence_links", "attachments", "tags", "record_tags", "research_links", "record_revisions", "activity_logs", "settings"] as const;
 
 export async function createBackupBuffer() {
   const archive = archiver("zip", { zlib: { level: 6 } });
