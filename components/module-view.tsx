@@ -204,7 +204,7 @@ export function ModuleView({ config, initialItems }: { config: ModuleConfig; ini
     </div>
 
     <section className="data-surface">
-      {loading ? <div className="table-skeleton">{[1, 2, 3, 4].map((i) => <span key={i} />)}</div> : error ? <div className="load-error compact"><p>{error}</p><button className="button secondary" onClick={load}>重试</button></div> : items.length ? <div className="record-table-wrap"><table className="record-table"><thead><tr>
+      {loading ? <div className="table-skeleton">{[1, 2, 3, 4].map((i) => <span key={i} />)}</div> : error ? <div className="load-error compact"><p>{error}</p><button className="button secondary" onClick={load}>重试</button></div> : items.length ? <><div className="record-table-wrap"><table className="record-table"><thead><tr>
         <th className="check-cell"><input type="checkbox" aria-label="全选" checked={selected.size === items.length && items.length > 0} onChange={(e) => setSelected(e.target.checked ? new Set(items.map((item) => item.id)) : new Set())} /></th>
         {config.columns.map((column) => <th key={column.key}>{column.label}</th>)}
         <th className="action-cell">操作</th>
@@ -230,7 +230,7 @@ export function ModuleView({ config, initialItems }: { config: ModuleConfig; ini
             })}</div>
           </Link>
           <div className="record-mobile-actions"><button className="button ghost" onClick={() => openEdit(item)}><Pencil size={15} />编辑</button><button className="button ghost" onClick={() => archive(item, !archived)}>{archived ? <ArchiveRestore size={15} /> : <Archive size={15} />}{archived ? "恢复" : "归档"}</button><Link className="button secondary" href={`/${config.type}/${item.id}`}>查看<ChevronRight size={15} /></Link></div>
-        </article>)}</div> : <EmptyState icon={config.type === "projects" ? FolderKanban : FilePlus2} title={archived ? "归档中没有记录" : config.emptyTitle} description={archived ? "已归档的记录会保留在这里。" : config.emptyDescription} action={!archived && <button className="button primary" onClick={() => openCreate()}><Plus size={16} />{config.addLabel}</button>} />}
+        </article>)}</div></> : <EmptyState icon={config.type === "projects" ? FolderKanban : FilePlus2} title={archived ? "归档中没有记录" : config.emptyTitle} description={archived ? "已归档的记录会保留在这里。" : config.emptyDescription} action={!archived && <button className="button primary" onClick={() => openCreate()}><Plus size={16} />{config.addLabel}</button>} />}
     </section>
 
     {sheetOpen && <div className="sheet-scrim" onMouseDown={(e) => e.target === e.currentTarget && setSheetOpen(false)}><section className="sheet-panel record-sheet" role="dialog" aria-modal="true" aria-label={editing ? `编辑${config.singular}` : config.addLabel}>
