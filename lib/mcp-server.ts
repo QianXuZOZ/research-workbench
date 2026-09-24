@@ -200,8 +200,8 @@ export function buildResearchMcpServer() {
     const weekEnd = calendarDateInTimeZone(new Date(Date.now() + 7 * 86400_000), timezone);
     const taskCounts = sqlite.prepare(`SELECT SUM(CASE WHEN status!='done' AND due_at<? THEN 1 ELSE 0 END) overdue,SUM(CASE WHEN status!='done' AND due_at>=? AND due_at<=? THEN 1 ELSE 0 END) dueWeek,SUM(CASE WHEN status='done' THEN 1 ELSE 0 END) done,COUNT(*) total FROM tasks WHERE archived_at IS NULL`).get(today, today, weekEnd);
     const upcoming = sqlite.prepare("SELECT id,title,status,priority,due_at AS dueAt,entity_type AS entityType,entity_id AS entityId FROM tasks WHERE archived_at IS NULL AND status!='done' AND due_at IS NOT NULL AND due_at<=? ORDER BY due_at LIMIT 10").all(weekEnd);
-    const process = Object.fromEntries(["research_questions","hypotheses","experiments","experiment_runs","findings","artifacts"].map((table) => [table, (sqlite.prepare(`SELECT COUNT(*) count FROM ${table} WHERE archived_at IS NULL`).get() as { count: number }).count]));
-    return result({ today, weekEnd, taskCounts, upcoming, process, promotion: getPromotionOverview()[0] ?? null });
+    const researchProcess = Object.fromEntries(["research_questions","hypotheses","experiments","experiment_runs","findings","artifacts"].map((table) => [table, (sqlite.prepare(`SELECT COUNT(*) count FROM ${table} WHERE archived_at IS NULL`).get() as { count: number }).count]));
+    return result({ today, weekEnd, taskCounts, upcoming, researchProcess, promotion: getPromotionOverview()[0] ?? null });
   });
 
   server.registerTool("list_tasks", {
