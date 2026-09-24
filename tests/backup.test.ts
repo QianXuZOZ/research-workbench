@@ -39,9 +39,11 @@ describe("versioned backup export", () => {
 
     const data = JSON.parse(dataBuffer!.toString("utf8"));
     const manifest = JSON.parse(manifestBuffer!.toString("utf8"));
-    expect(data.schemaVersion).toBe(1);
+    expect(data.schemaVersion).toBe(2);
     expect(data.tables.projects.some((item: { id: string }) => item.id === projectId)).toBe(true);
     expect(data.tables.literature_items).toEqual([]);
+    expect(data.tables.research_questions).toEqual([]);
+    expect(data.tables.record_revisions).toEqual([]);
     const dataEntry = manifest.files.find((item: { path: string }) => item.path === "data.json");
     expect(dataEntry.sha256).toBe(createHash("sha256").update(dataBuffer!).digest("hex"));
   });
