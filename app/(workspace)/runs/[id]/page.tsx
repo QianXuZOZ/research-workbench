@@ -1,6 +1,6 @@
-import { RecordDetail } from "@/components/record-detail";
+import { RecordDetailPage } from "@/components/record-detail-page";
 import { modules } from "@/lib/module-config";
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
-  return <RecordDetail config={modules.runs} id={(await params).id} />;
+  return <RecordDetailPage config={modules.runs} id={(await params).id} />;
 }

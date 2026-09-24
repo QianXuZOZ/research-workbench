@@ -1,6 +1,6 @@
-import { ModuleView } from "@/components/module-view";
+import { RecordModulePage } from "@/components/record-module-page";
 import { modules } from "@/lib/module-config";
 
-export default function LiteraturePage() {
-  return <ModuleView config={modules.literature} />;
+export default function Page() {
+  return <RecordModulePage config={modules.literature} />;
 }
