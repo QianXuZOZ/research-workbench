@@ -226,3 +226,9 @@ input[type="checkbox"] { width: 17px; height: 17px; min-height: auto; accent-col
 .process-card>span{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:var(--surface-strong)}
 .process-card h2{margin:0 0 6px;font-size:16px}
 .process-card p{margin:0;color:var(--muted);line-height:1.55;font-size:13px}
+
+.revision-list{display:grid;gap:8px}
+.revision-list>div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.revision-list>div:last-child{border-bottom:0}
+.revision-list strong{font-size:13px}
+.revision-list small{color:var(--muted);font-size:12px}
