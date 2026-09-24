@@ -161,11 +161,11 @@ PowerShell:
 
 ```powershell
 $env:RESEARCH_WORKBENCH_MCP_TOKEN="your-secret-token"
-codex mcp add research-workbench --url https://research.example.com/mcp --bearer-token-env-var RESEARCH_WORKBENCH_MCP_TOKEN
+codex mcp add research-workbench --url https://research.example.com/mcp
 codex mcp list
 ```
 
-If your installed Codex build does not accept `--bearer-token-env-var` on the command line, add the server to `~/.codex/config.toml`:
+Then add the bearer-token environment variable to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.research_workbench]
