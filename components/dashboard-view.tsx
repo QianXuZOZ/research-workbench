@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, Award, BookOpenText, BriefcaseBusiness, CalendarClock, CheckCircle2, ChevronRight, CircleDot, Clock3, FileBadge2, ListTodo, Plus, RefreshCw, ShieldAlert, Sparkles, Zap } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Award, BookOpenText, CalendarClock, CheckCircle2, ChevronRight, CircleDot, Clock3, FlaskConical, Lightbulb, ListTodo, Plus, RefreshCw, ShieldAlert, Sparkles, Zap } from "lucide-react";
 import { apiFetch, formatDate } from "@/lib/client-api";
 import { PageHeader } from "@/components/page-header";
 
@@ -24,12 +24,13 @@ export function DashboardView() {
   const [data, setData] = useState<DashboardData | null>(null); const [error, setError] = useState("");
   function load() { setError(""); apiFetch<DashboardData>("/api/dashboard").then(setData).catch((e) => setError(e.message)); }
   useEffect(load, []);
-  if (error) return <div className="load-error"><ShieldAlert size={28} /><h2>驾驶舱暂时无法载入</h2><p>{error}</p><button className="button secondary" onClick={load}><RefreshCw size={16} />重试</button></div>;
+  if (error) return <div className="load-error"><ShieldAlert size={28} /><h2>总览暂时无法载入</h2><p>{error}</p><button className="button secondary" onClick={load}><RefreshCw size={16} />重试</button></div>;
   if (!data) return <div className="dashboard-skeleton"><div /><div /><div /><div /></div>;
   const overdue = Number(data.taskCounts.overdue ?? 0); const week = Number(data.taskCounts.due_week ?? 0); const done = Number(data.taskCounts.done ?? 0); const total = Number(data.taskCounts.total ?? 0);
   const completion = total ? Math.round((done / total) * 100) : 0;
   return <div className="dashboard-page">
     <PageHeader title="今天从哪里推进？" description={`${new Intl.DateTimeFormat("zh-CN", { timeZone: data.timezone, year: "numeric", month: "long", day: "numeric", weekday: "long" }).format(new Date())} · 先处理风险，再推进产出。`} actions={<><Link className="button secondary" href="/literature?import=1"><BookOpenText size={16} />导入文献</Link><Link className="button primary" href="/tasks?new=1"><Plus size={16} />新建任务</Link></>} />
+    <section className="quick-capture-panel" aria-label="快速记录"><div><strong>快速记录</strong><span>把刚想到的事情先放进工作台</span></div><nav><Link href="/tasks?new=1"><ListTodo size={17} />任务</Link><Link href="/questions?new=1"><Lightbulb size={17} />研究问题</Link><Link href="/findings?new=1"><FlaskConical size={17} />研究发现</Link><Link href="/literature?import=1"><BookOpenText size={17} />文献</Link></nav></section>
     <section className="attention-deck" aria-label="今日关注">
       <div className={`attention-main ${overdue ? "danger" : "clear"}`}>
         <div className="attention-icon">{overdue ? <AlertTriangle size={25} /> : <CheckCircle2 size={25} />}</div>

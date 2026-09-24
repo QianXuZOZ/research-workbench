@@ -204,7 +204,7 @@ export function ModuleView({ config, initialItems }: { config: ModuleConfig; ini
     </div>
 
     <section className="data-surface">
-      {loading ? <div className="table-skeleton">{[1, 2, 3, 4].map((i) => <span key={i} />)}</div> : error ? <div className="load-error compact"><p>{error}</p><button className="button secondary" onClick={load}>重试</button></div> : items.length ? <div className="record-table-wrap"><table className="record-table"><thead><tr>
+      {loading ? <div className="table-skeleton">{[1, 2, 3, 4].map((i) => <span key={i} />)}</div> : error ? <div className="load-error compact"><p>{error}</p><button className="button secondary" onClick={load}>重试</button></div> : items.length ? <><div className="record-table-wrap"><table className="record-table"><thead><tr>
         <th className="check-cell"><input type="checkbox" aria-label="全选" checked={selected.size === items.length && items.length > 0} onChange={(e) => setSelected(e.target.checked ? new Set(items.map((item) => item.id)) : new Set())} /></th>
         {config.columns.map((column) => <th key={column.key}>{column.label}</th>)}
         <th className="action-cell">操作</th>
@@ -220,7 +220,17 @@ export function ModuleView({ config, initialItems }: { config: ModuleConfig; ini
             String(item[column.key] ?? "—")}</td>;
         })}
         <td className="action-cell"><div className="row-actions"><button className="icon-button" onClick={() => openEdit(item)} aria-label="编辑"><Pencil size={16} /></button><button className="icon-button" onClick={() => archive(item, !archived)} aria-label={archived ? "恢复" : "归档"}>{archived ? <ArchiveRestore size={16} /> : <Archive size={16} />}</button>{archived && <button className="icon-button danger" onClick={() => remove(item)} aria-label="永久删除"><Trash2 size={16} /></button>}<Link className="icon-button" href={`/${config.type}/${item.id}`} aria-label="查看详情"><ChevronRight size={17} /></Link></div></td>
-      </tr>)}</tbody></table></div> : <EmptyState icon={config.type === "projects" ? FolderKanban : FilePlus2} title={archived ? "归档中没有记录" : config.emptyTitle} description={archived ? "已归档的记录会保留在这里。" : config.emptyDescription} action={!archived && <button className="button primary" onClick={() => openCreate()}><Plus size={16} />{config.addLabel}</button>} />}
+      </tr>)}</tbody></table></div><div className="record-card-list">{items.map((item) => <article className="record-mobile-card" key={item.id}>
+          <Link className="record-mobile-main" href={`/${config.type}/${item.id}`}>
+            <div className="record-mobile-head"><strong>{item.title || "未命名"}</strong>{item.status ? <span className={`status-badge status-${item.status}`}>{statusMap[String(item.status)] ?? String(item.status)}</span> : null}</div>
+            <div className="record-mobile-meta">{config.columns.slice(1,4).map((column) => {
+              const relationField = config.fields.find((field) => field.key === column.key && field.relation);
+              const value = relationField ? relationLabel(relationField, item) : column.key === "progress" ? `${Number(item.progress ?? 0)}%` : column.key.toLowerCase().includes("date") || column.key.endsWith("At") ? formatDate(String(item[column.key] ?? "")) : String(item[column.key] ?? "—");
+              return <span key={column.key}><small>{column.label}</small><b>{value}</b></span>;
+            })}</div>
+          </Link>
+          <div className="record-mobile-actions"><button className="button ghost" onClick={() => openEdit(item)}><Pencil size={15} />编辑</button><button className="button ghost" onClick={() => archive(item, !archived)}>{archived ? <ArchiveRestore size={15} /> : <Archive size={15} />}{archived ? "恢复" : "归档"}</button><Link className="button secondary" href={`/${config.type}/${item.id}`}>查看<ChevronRight size={15} /></Link></div>
+        </article>)}</div></> : <EmptyState icon={config.type === "projects" ? FolderKanban : FilePlus2} title={archived ? "归档中没有记录" : config.emptyTitle} description={archived ? "已归档的记录会保留在这里。" : config.emptyDescription} action={!archived && <button className="button primary" onClick={() => openCreate()}><Plus size={16} />{config.addLabel}</button>} />}
     </section>
 
     {sheetOpen && <div className="sheet-scrim" onMouseDown={(e) => e.target === e.currentTarget && setSheetOpen(false)}><section className="sheet-panel record-sheet" role="dialog" aria-modal="true" aria-label={editing ? `编辑${config.singular}` : config.addLabel}>
