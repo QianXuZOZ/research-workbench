@@ -96,6 +96,91 @@ export const literatureItems = sqliteTable("literature_items", {
   index("idx_literature_status_year").on(table.status, table.year),
 ]);
 
+export const researchQuestions = sqliteTable("research_questions", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  projectId: text("project_id"),
+  status: text("status").notNull().default("open"),
+  context: text("context"),
+  successCriteria: text("success_criteria"),
+  keywords: text("keywords"),
+  notes: text("notes"),
+  ...audit,
+}, (table) => [index("idx_questions_project_status").on(table.projectId, table.status)]);
+
+export const hypotheses = sqliteTable("hypotheses", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  projectId: text("project_id"),
+  questionId: text("question_id"),
+  status: text("status").notNull().default("proposed"),
+  rationale: text("rationale"),
+  prediction: text("prediction"),
+  keywords: text("keywords"),
+  notes: text("notes"),
+  ...audit,
+}, (table) => [index("idx_hypotheses_project_status").on(table.projectId, table.status)]);
+
+export const experiments = sqliteTable("experiments", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  projectId: text("project_id"),
+  hypothesisId: text("hypothesis_id"),
+  status: text("status").notNull().default("planned"),
+  method: text("method"),
+  platform: text("platform"),
+  variables: text("variables"),
+  expectedResult: text("expected_result"),
+  keywords: text("keywords"),
+  notes: text("notes"),
+  ...audit,
+}, (table) => [index("idx_experiments_project_status").on(table.projectId, table.status)]);
+
+export const experimentRuns = sqliteTable("experiment_runs", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  experimentId: text("experiment_id"),
+  status: text("status").notNull().default("planned"),
+  runAt: text("run_at"),
+  parameters: text("parameters"),
+  resultSummary: text("result_summary"),
+  errorMetric: real("error_metric"),
+  keywords: text("keywords"),
+  notes: text("notes"),
+  ...audit,
+}, (table) => [index("idx_runs_experiment_status").on(table.experimentId, table.status)]);
+
+export const findings = sqliteTable("findings", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  projectId: text("project_id"),
+  experimentId: text("experiment_id"),
+  runId: text("run_id"),
+  status: text("status").notNull().default("candidate"),
+  claim: text("claim"),
+  evidence: text("evidence"),
+  confidence: integer("confidence").notNull().default(50),
+  keywords: text("keywords"),
+  notes: text("notes"),
+  ...audit,
+}, (table) => [index("idx_findings_project_status").on(table.projectId, table.status)]);
+
+export const artifacts = sqliteTable("artifacts", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  projectId: text("project_id"),
+  experimentId: text("experiment_id"),
+  runId: text("run_id"),
+  artifactType: text("artifact_type").notNull().default("document"),
+  storageType: text("storage_type").notNull().default("upload"),
+  location: text("location"),
+  version: text("version"),
+  checksum: text("checksum"),
+  keywords: text("keywords"),
+  notes: text("notes"),
+  ...audit,
+}, (table) => [index("idx_artifacts_project_type").on(table.projectId, table.artifactType)]);
+
 export const patents = sqliteTable("patents", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
@@ -211,7 +296,25 @@ export const researchLinks = sqliteTable("research_links", {
   targetId: text("target_id").notNull(),
   relation: text("relation").notNull().default("related"),
   createdAt: text("created_at").notNull(),
-}, (table) => [uniqueIndex("idx_research_links_unique").on(table.sourceType, table.sourceId, table.targetType, table.targetId), index("idx_research_links_source").on(table.sourceType, table.sourceId)]);
+}, (table) => [uniqueIndex("idx_research_links_unique").on(table.sourceType, table.sourceId, table.targetType, table.targetId, table.relation), index("idx_research_links_source").on(table.sourceType, table.sourceId)]);
+
+export const recordRevisions = sqliteTable("record_revisions", {
+  id: text("id").primaryKey(),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id").notNull(),
+  actor: text("actor").notNull().default("user"),
+  snapshot: text("snapshot").notNull(),
+  createdAt: text("created_at").notNull(),
+}, (table) => [index("idx_revisions_entity_created").on(table.entityType, table.entityId, table.createdAt)]);
+
+export const promotionEvidenceLinks = sqliteTable("promotion_evidence_links", {
+  id: text("id").primaryKey(),
+  metricId: text("metric_id").notNull(),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id").notNull(),
+  note: text("note"),
+  createdAt: text("created_at").notNull(),
+}, (table) => [uniqueIndex("idx_promotion_evidence_unique").on(table.metricId, table.entityType, table.entityId)]);
 
 export const activityLogs = sqliteTable("activity_logs", {
   id: text("id").primaryKey(),

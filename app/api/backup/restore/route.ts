@@ -11,7 +11,7 @@ import { updateSearchIndex } from "@/lib/search";
 
 export async function POST(request: NextRequest) {
   const auth = await requireApiSession(request); if ("response" in auth) return auth.response;
-  const count = ["projects", "papers", "literature_items", "patents", "growth_items", "tasks", "promotion_cycles"].reduce((sum, table) => sum + Number((sqlite.prepare(`SELECT COUNT(*) count FROM ${table}`).get() as { count: number }).count), 0);
+  const count = ["projects", "papers", "literature_items", "research_questions", "hypotheses", "experiments", "experiment_runs", "findings", "artifacts", "patents", "growth_items", "tasks", "promotion_cycles"].reduce((sum, table) => sum + Number((sqlite.prepare(`SELECT COUNT(*) count FROM ${table}`).get() as { count: number }).count), 0);
   if (count > 0) return jsonError("恢复仅允许在空白实例中进行。请先使用新的数据目录启动应用。", 409, "INSTANCE_NOT_EMPTY");
   const form = await request.formData(); const file = form.get("file");
   if (!(file instanceof File) || !file.name.toLowerCase().endsWith(".zip")) return jsonError("请选择工作台备份 ZIP", 400, "VALIDATION_ERROR");
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   if (!dataEntry || !manifestEntry) return jsonError("备份缺少数据或校验清单", 400, "INVALID_BACKUP");
   let payload: { schemaVersion: number; tables: Record<string, Record<string, unknown>[]> }; let manifest: { schemaVersion: number; files: { path: string; sha256: string }[] };
   try { payload = JSON.parse(dataEntry.getData().toString("utf8")); manifest = JSON.parse(manifestEntry.getData().toString("utf8")); } catch { return jsonError("备份数据格式无效", 400, "INVALID_BACKUP"); }
-  if (payload.schemaVersion !== BACKUP_SCHEMA_VERSION || manifest.schemaVersion !== BACKUP_SCHEMA_VERSION) return jsonError("备份版本与当前程序不兼容", 409, "BACKUP_VERSION_MISMATCH");
+  if (![1, BACKUP_SCHEMA_VERSION].includes(payload.schemaVersion) || ![1, BACKUP_SCHEMA_VERSION].includes(manifest.schemaVersion)) return jsonError("备份版本与当前程序不兼容", 409, "BACKUP_VERSION_MISMATCH");
   for (const item of manifest.files) {
     if (item.path.includes("..") || path.isAbsolute(item.path)) return jsonError("备份包含不安全路径", 400, "INVALID_BACKUP");
     const entry = zip.getEntry(item.path); if (!entry) return jsonError(`备份缺少 ${item.path}`, 400, "INVALID_BACKUP");
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       const name = path.basename(item.path); fs.writeFileSync(path.join(uploadDir, name), zip.getEntry(item.path)!.getData(), { flag: "wx" });
     }
     const searchable = [
-      ["projects", "projects", ["title", "summary", "notes", "keywords"]], ["papers", "papers", ["title", "abstract", "notes", "keywords"]], ["literature_items", "literature", ["title", "abstract", "notes", "keywords"]],
+      ["projects", "projects", ["title", "summary", "notes", "keywords"]], ["papers", "papers", ["title", "abstract", "notes", "keywords"]], ["literature_items", "literature", ["title", "abstract", "notes", "keywords"]], ["research_questions", "questions", ["title", "context", "success_criteria", "notes", "keywords"]], ["hypotheses", "hypotheses", ["title", "rationale", "prediction", "notes", "keywords"]], ["experiments", "experiments", ["title", "method", "platform", "variables", "notes", "keywords"]], ["experiment_runs", "runs", ["title", "parameters", "result_summary", "notes", "keywords"]], ["findings", "findings", ["title", "claim", "evidence", "notes", "keywords"]], ["artifacts", "artifacts", ["title", "location", "notes", "keywords"]],
       ["patents", "patents", ["title", "abstract", "notes", "keywords"]], ["growth_items", "growth", ["title", "evidence", "notes", "keywords"]], ["tasks", "tasks", ["title", "notes"]],
     ] as const;
     for (const [table, type, fields] of searchable) for (const row of sqlite.prepare(`SELECT * FROM ${table}`).all() as Record<string, unknown>[]) updateSearchIndex(type, String(row.id), String(row.title), fields.slice(1).map((field) => String(row[field] ?? "")).join(" "));

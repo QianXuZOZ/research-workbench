@@ -7,6 +7,9 @@
 - 行动优先的科研驾驶舱：逾期、近期节点、项目风险、科研管线与晋升缺口。
 - 项目、论文成果、参考文献、专利和成长记录的完整增删改查、筛选、归档与详情页。
 - 跨模块任务、里程碑、附件和研究成果关联。
+- 科研过程链：研究问题 → 假设 → 实验 → Run → Finding → Artifact，并可与项目、论文、专利互相关联。
+- 统一版本历史：记录和任务更新前自动保存 Revision，区分网页用户与 MCP/AI 修改。
+- 晋升指标按评审周期日期过滤，并支持显式证据关联。
 - 可配置晋升周期、自动计数指标、必达项和加权完成度。
 - 独立文献库：BibTeX 预览、重复识别、跳过或合并导入，不与个人论文成果混计。
 - 单管理员安全会话、登录限速、CSRF/来源校验和强制初始密码修改。
@@ -142,13 +145,13 @@ Authorization: Bearer <MCP_ACCESS_TOKEN>
 
 The first MCP version exposes non-destructive and additive tools:
 
-- `search_records`
-- `get_record`
+- `search_records` / `list_records` / `get_record` / `get_dashboard`
 - `list_tasks`
-- `create_task`
-- `bulk_create_tasks`
-- `create_record`
-- `bulk_create_records`
+- `create_record` / `update_record`
+- `create_task` / `update_task`
+- `bulk_create_records` / `bulk_update_records`
+- `bulk_create_tasks` / `bulk_update_tasks`
+- `preview_bulk_operation` / `execute_bulk_operation`
 - `link_records`
 
 Delete, backup restore, password management, and other destructive operations are intentionally not exposed.
@@ -175,3 +178,25 @@ bearer_token_env_var = "RESEARCH_WORKBENCH_MCP_TOKEN"
 
 Keep `/mcp` behind the same HTTPS reverse proxy as the main application. No inbound port needs to be opened on the computer running Codex.
 
+
+
+## 科研过程数据模型
+
+```text
+Project
+├─ Research Question
+├─ Hypothesis
+├─ Experiment
+│  └─ Experiment Run
+├─ Finding
+└─ Artifact
+```
+
+- **Research Question**：需要回答的科学/工程问题及成功判据。
+- **Hypothesis**：可被验证或否定的机理判断与预测。
+- **Experiment**：实验设计、平台、变量与方法。
+- **Experiment Run**：一次具体运行，保存参数、结果摘要和误差。
+- **Finding**：从分析或实验中得到的、可复用的结论。
+- **Artifact**：MATLAB、PSCAD、数据集、图、文档、GitHub 仓库或外部文件路径。对于大文件，优先使用路径/仓库/URL 引用，而不是全部上传进容器。
+
+备份 schema v2 会包含上述科研过程表、版本历史与晋升证据。恢复逻辑仍兼容旧的 v1 完整备份。
