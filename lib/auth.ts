@@ -59,13 +59,16 @@ export async function createSession(adminId: string) {
 export async function getSession(): Promise<SessionUser | null> {
   const token = (await cookies()).get(COOKIE_NAME)?.value;
   if (!token) return null;
-  const row = sqlite.prepare(`SELECT a.id, a.email, a.must_change_password, s.csrf_token, s.expires_at, s.id AS session_id
+  const row = sqlite.prepare(`SELECT a.id, a.email, a.must_change_password, s.csrf_token, s.expires_at, s.last_seen_at, s.id AS session_id
     FROM sessions s JOIN admins a ON a.id = s.admin_id WHERE s.token_hash = ? LIMIT 1`).get(hashToken(token)) as Record<string, unknown> | undefined;
   if (!row || new Date(String(row.expires_at)).getTime() <= Date.now()) {
     if (row) sqlite.prepare("DELETE FROM sessions WHERE id = ?").run(row.session_id);
     return null;
   }
-  sqlite.prepare("UPDATE sessions SET last_seen_at = ? WHERE id = ?").run(nowIso(), row.session_id);
+  const lastSeen = new Date(String(row.last_seen_at)).getTime();
+  if (!Number.isFinite(lastSeen) || Date.now() - lastSeen > 5 * 60_000) {
+    sqlite.prepare("UPDATE sessions SET last_seen_at = ? WHERE id = ?").run(nowIso(), row.session_id);
+  }
   return {
     id: String(row.id),
     email: String(row.email),
