@@ -8,7 +8,7 @@ import { apiFetch } from "@/lib/client-api";
 import { WebMcpTools } from "@/components/webmcp-tools";
 
 const nav = [
-  ["/dashboard", "驾驶舱", LayoutDashboard], ["/tasks", "任务中心", CalendarCheck2], ["/projects", "项目管理", BriefcaseBusiness], ["/research", "科研过程", Beaker], ["/papers", "论文成果", BookOpenText], ["/literature", "文献库", BookMarked],
+  ["/dashboard", "总览", LayoutDashboard], ["/tasks", "任务中心", CalendarCheck2], ["/projects", "项目管理", BriefcaseBusiness], ["/research", "科研过程", Beaker], ["/papers", "论文成果", BookOpenText], ["/literature", "文献库", BookMarked],
   ["/patents", "专利管理", FileBadge2], ["/growth", "个人成长", GraduationCap], ["/promotion", "晋升管理", Award], ["/settings", "系统设置", Settings],
 ] as const;
 
