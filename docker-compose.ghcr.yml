@@ -1,0 +1,27 @@
+services:
+  workbench:
+    image: ghcr.io/qianxuzoz/research-workbench:latest
+    container_name: research-workbench
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:3100:3000"
+
+    environment:
+      DATABASE_PATH: /data/workbench.db
+      UPLOAD_DIR: /data/uploads
+      EXPORT_DIR: /data/exports
+      ADMIN_EMAIL: researcher@example.com
+      ADMIN_INITIAL_PASSWORD: replace-with-a-long-random-password
+      SESSION_TTL_HOURS: "12"
+      APP_TIMEZONE: Asia/Hong_Kong
+      MAX_UPLOAD_MB: "100"
+      COOKIE_SECURE: "true"
+      TRUSTED_ORIGIN: https://research.example.com
+      MCP_ACCESS_TOKEN: replace-with-at-least-32-random-characters
+
+    volumes:
+      - ./data:/data
+
+    security_opt:
+      - no-new-privileges:true
