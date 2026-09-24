@@ -9,5 +9,6 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
   const session = await getSession(); if (!session) redirect("/login");
   const displayName = (sqlite.prepare("SELECT value FROM settings WHERE key='displayName'").get() as { value: string } | undefined)?.value ?? "研究者";
   const timeZone = process.env.APP_TIMEZONE ?? "Asia/Hong_Kong";
-  return <AppShell email={session.email} displayName={displayName} csrf={session.csrfToken} mustChangePassword={session.mustChangePassword} timeZone={timeZone}>{children}</AppShell>;
+  const hasAvatar = Boolean(sqlite.prepare("SELECT 1 FROM attachments WHERE entity_type='profile' AND entity_id='avatar' LIMIT 1").get());
+  return <AppShell email={session.email} displayName={displayName} avatarUrl={hasAvatar ? "/api/profile/avatar" : null} csrf={session.csrfToken} mustChangePassword={session.mustChangePassword} timeZone={timeZone}>{children}</AppShell>;
 }
