@@ -7,6 +7,7 @@ import { fromDatabase, isRecordType, recordLabels, recordSchemas, recordTables, 
 import { requireApiSession } from "@/lib/security";
 import { deleteSearchIndex, updateSearchIndex } from "@/lib/search";
 import { calendarDateInTimeZone, jsonError, normalizeDoi, nowIso } from "@/lib/utils";
+import { listRevisions, saveRevision } from "@/lib/revisions";
 
 export async function GET(_request: NextRequest, context: { params: Promise<{ type: string; id: string }> }) {
   const auth = await requireApiSession();
@@ -25,7 +26,8 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ ty
     const other = table ? sqlite.prepare(`SELECT title FROM ${table} WHERE id = ?`).get(otherId) as { title: string } | undefined : undefined;
     return { ...link, otherType, otherId, otherTitle: other?.title ?? "记录已删除" };
   });
-  return Response.json({ item: fromDatabase(type, row), tasks, attachments, links });
+  const revisions = listRevisions(type, id, 20);
+  return Response.json({ item: fromDatabase(type, row), tasks, attachments, links, revisions });
 }
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ type: string; id: string }> }) {
@@ -47,6 +49,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ t
     if (type === "papers" || type === "literature") data.doi = normalizeDoi(String(data.doi ?? ""));
     if (type === "projects" && data.status === "completed" && !data.completedAt) data.completedAt = calendarDateInTimeZone();
     const values = toDatabase(type, data);
+    saveRevision(type, id, fromDatabase(type, current), "user");
     try {
       sqlite.prepare(`UPDATE ${recordTables[type]} SET ${Object.keys(values).map((key) => `${key} = ?`).join(",")}, updated_at = ? WHERE id = ?`).run(...Object.values(values), nowIso(), id);
     } catch (error) {
