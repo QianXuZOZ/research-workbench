@@ -170,7 +170,7 @@ export function buildResearchMcpServer() {
     annotations: { readOnlyHint: true },
   }, async ({ type, status, query, limit }) => {
     const where = ["archived_at IS NULL"]; const values: unknown[] = [];
-    if (status) { where.push("status=?"); values.push(status); }
+    if (status && type !== "artifacts") { where.push("status=?"); values.push(status); }
     if (query) { where.push("(title LIKE ? OR COALESCE(notes,'') LIKE ? OR COALESCE(keywords,'') LIKE ?)"); values.push(`%${query}%`, `%${query}%`, `%${query}%`); }
     values.push(limit);
     const rows = sqlite.prepare(`SELECT * FROM ${recordTables[type]} WHERE ${where.join(" AND ")} ORDER BY updated_at DESC LIMIT ?`).all(...values) as Record<string, unknown>[];
