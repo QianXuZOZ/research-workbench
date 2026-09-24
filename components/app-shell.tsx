@@ -38,7 +38,7 @@ export function AppShell({ children, email, displayName, avatarUrl, csrf, mustCh
       {mobileOpen && <button className="nav-scrim" aria-label="关闭导航" onClick={() => setMobileOpen(false)} />}
       <div className="workspace">
         <header className="topbar">
-          <button className="icon-button mobile-only" onClick={() => setMobileOpen(true)} aria-label="打开导航"><Menu size={21} /></button>
+          <button className="icon-button mobile-only" onClick={() => setMobileOpen(true)} aria-label="打开导航"><Menu size={21} /></button><Link href="/dashboard" className="mobile-top-brand mobile-only">电研工作台</Link>
           <button className="global-search" onClick={() => { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 0); }}><Search size={18} /><span>搜索项目、科研过程、论文成果、文献、专利或任务</span><kbd>Ctrl K</kbd></button>
           <div className="topbar-actions"><span className="today-label">{new Intl.DateTimeFormat("zh-CN", { timeZone, month: "long", day: "numeric", weekday: "short" }).format(new Date())}</span><button className="icon-button" onClick={toggleTheme} aria-label={dark ? "切换浅色模式" : "切换深色模式"}>{dark ? <Sun size={19} /> : <Moon size={19} />}</button></div>
         </header>
