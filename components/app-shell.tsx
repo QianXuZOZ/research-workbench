@@ -6,6 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { Award, Beaker, BookMarked, BookOpenText, BriefcaseBusiness, CalendarCheck2, ChevronRight, FileBadge2, GraduationCap, LayoutDashboard, LogOut, Menu, Moon, Search, Settings, Sun, X, Zap } from "lucide-react";
 import { apiFetch } from "@/lib/client-api";
 import { WebMcpTools } from "@/components/webmcp-tools";
+import { applyThemeConfig, readStoredThemeConfig } from "@/lib/theme-client";
+import type { ThemeConfig } from "@/lib/theme-presets";
 
 const nav = [
   ["/dashboard", "总览", LayoutDashboard], ["/tasks", "任务中心", CalendarCheck2], ["/projects", "项目管理", BriefcaseBusiness], ["/research", "科研过程", Beaker], ["/papers", "论文成果", BookOpenText], ["/literature", "文献库", BookMarked],
@@ -14,14 +16,15 @@ const nav = [
 
 const entityPath: Record<string, string> = { projects: "projects", papers: "papers", literature: "literature", questions: "questions", hypotheses: "hypotheses", experiments: "experiments", runs: "runs", findings: "findings", artifacts: "artifacts", patents: "patents", growth: "growth", tasks: "tasks" };
 
-export function AppShell({ children, email, displayName, avatarUrl, csrf, mustChangePassword, timeZone }: { children: React.ReactNode; email: string; displayName: string; avatarUrl: string | null; csrf: string; mustChangePassword: boolean; timeZone: string }) {
-  const pathname = usePathname(); const router = useRouter(); const [mobileOpen, setMobileOpen] = useState(false); const [dark, setDark] = useState(false); const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(avatarUrl);
+export function AppShell({ children, email, displayName, avatarUrl, csrf, mustChangePassword, timeZone, initialTheme }: { children: React.ReactNode; email: string; displayName: string; avatarUrl: string | null; csrf: string; mustChangePassword: boolean; timeZone: string; initialTheme: ThemeConfig }) {
+  const pathname = usePathname(); const router = useRouter(); const [mobileOpen, setMobileOpen] = useState(false); const [dark, setDark] = useState(false); const [themeConfig, setThemeConfig] = useState<ThemeConfig>(initialTheme); const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(avatarUrl);
   const [searchOpen, setSearchOpen] = useState(false); const [query, setQuery] = useState(""); const [results, setResults] = useState<{ entityType: string; entityId: string; title: string; snippet: string }[]>([]); const searchRef = useRef<HTMLInputElement>(null);
-  useEffect(() => { const saved = localStorage.getItem("theme"); const enabled = saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches); setDark(enabled); document.documentElement.dataset.theme = enabled ? "dark" : "light"; }, []);
+  useEffect(() => { const config = readStoredThemeConfig(initialTheme); const applied = applyThemeConfig(config, true); setThemeConfig(applied.config); setDark(applied.mode === "dark"); const media = window.matchMedia("(prefers-color-scheme: dark)"); const onSystem = () => { if (config.mode === "system") { const next = applyThemeConfig(config, false); setDark(next.mode === "dark"); } }; media.addEventListener("change", onSystem); return () => media.removeEventListener("change", onSystem); }, [initialTheme]);
+  useEffect(() => { const handler = (event: Event) => { const config = (event as CustomEvent<ThemeConfig>).detail; const applied = applyThemeConfig(config, true); setThemeConfig(applied.config); setDark(applied.mode === "dark"); }; window.addEventListener("workbench-theme-change", handler); return () => window.removeEventListener("workbench-theme-change", handler); }, []);
   useEffect(() => { if (!searchOpen || query.trim().length < 2) { setResults([]); return; } const timer = setTimeout(() => { apiFetch<{ items: typeof results }>(`/api/search?q=${encodeURIComponent(query)}`).then((data) => setResults(data.items)).catch(() => setResults([])); }, 220); return () => clearTimeout(timer); }, [query, searchOpen]);
   useEffect(() => { const avatarHandler = (event: Event) => setCurrentAvatarUrl((event as CustomEvent<{ url: string | null }>).detail.url); window.addEventListener("profile-avatar-changed", avatarHandler); return () => window.removeEventListener("profile-avatar-changed", avatarHandler); }, []);
   useEffect(() => { const handler = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 0); } if (event.key === "Escape") setSearchOpen(false); }; window.addEventListener("keydown", handler); return () => window.removeEventListener("keydown", handler); }, []);
-  function toggleTheme() { const next = !dark; setDark(next); document.documentElement.dataset.theme = next ? "dark" : "light"; localStorage.setItem("theme", next ? "dark" : "light"); }
+  function toggleTheme() { const next = { ...themeConfig, mode: dark ? "light" : "dark" } as ThemeConfig; const applied = applyThemeConfig(next, true); setThemeConfig(applied.config); setDark(applied.mode === "dark"); window.dispatchEvent(new CustomEvent("workbench-theme-change", { detail: applied.config })); }
   async function logout() { await apiFetch("/api/auth/logout", { method: "POST" }); router.replace("/login"); router.refresh(); }
   const initials = (displayName || email).slice(0, 1).toUpperCase();
   return (
