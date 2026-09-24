@@ -12,6 +12,38 @@ export type RecordDetailData = {
   links: Record<string, unknown>[];
 };
 
+const relationFields: Partial<Record<RecordType, Record<string, RecordType>>> = {
+  questions: { projectId: "projects" },
+  hypotheses: { projectId: "projects", questionId: "questions" },
+  experiments: { projectId: "projects", hypothesisId: "hypotheses" },
+  runs: { experimentId: "experiments" },
+  findings: { projectId: "projects", experimentId: "experiments", runId: "runs" },
+  artifacts: { projectId: "projects", experimentId: "experiments", runId: "runs" },
+};
+
+function attachRelationTitles(type: RecordType, items: RecordItem[]) {
+  const fields = relationFields[type];
+  if (!fields || !items.length) return items;
+
+  const titleMaps = new Map<string, Map<string, string>>();
+  for (const [field, targetType] of Object.entries(fields)) {
+    const ids = [...new Set(items.map((item) => item[field]).filter(Boolean).map(String))];
+    if (!ids.length) continue;
+    const rows = sqlite.prepare(`SELECT id,title FROM ${recordTables[targetType]} WHERE id IN (${ids.map(() => "?").join(",")})`)
+      .all(...ids) as { id: string; title: string }[];
+    titleMaps.set(field, new Map(rows.map((row) => [row.id, row.title])));
+  }
+
+  return items.map((item) => {
+    const next = { ...item };
+    for (const field of Object.keys(fields)) {
+      const id = item[field];
+      if (id) next[`${field}Title`] = titleMaps.get(field)?.get(String(id)) ?? null;
+    }
+    return next;
+  });
+}
+
 export function listRecordItems(type: RecordType, options: { query?: string; status?: string; archived?: boolean; limit?: number } = {}) {
   const query = options.query?.trim() ?? "";
   const status = options.status?.trim() ?? "";
@@ -33,7 +65,7 @@ export function listRecordItems(type: RecordType, options: { query?: string; sta
   const rows = sqlite.prepare(`SELECT * FROM ${recordTables[type]} WHERE ${where.join(" AND ")} ORDER BY updated_at DESC LIMIT ?`)
     .all(...values) as Record<string, unknown>[];
 
-  return rows.map((row) => fromDatabase(type, row) as RecordItem);
+  return attachRelationTitles(type, rows.map((row) => fromDatabase(type, row) as RecordItem));
 }
 
 function titleMapForLinks(rawLinks: Record<string, unknown>[], currentType: RecordType, currentId: string) {
