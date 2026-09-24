@@ -4,5 +4,5 @@ import { ModuleView } from "@/components/module-view";
 
 export function RecordModulePage({ config }: { config: ModuleConfig }) {
   const initialItems = listRecordItems(config.type, { limit: 100 });
-  return <ModuleView config={config} initialItems={initialItems} />;
+  return <ModuleView key={config.type} config={config} initialItems={initialItems} />;
 }
