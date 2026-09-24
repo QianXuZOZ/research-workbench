@@ -1,6 +1,6 @@
 export type ThemeMode = "light" | "dark" | "system";
 
-export const themeOverrideKeys = ["accent", "title", "body", "muted", "background", "surface", "sidebar"] as const;
+export const themeOverrideKeys = ["accent", "title", "body", "muted", "background", "surface", "sidebar", "sidebarText", "sidebarMuted"] as const;
 export type ThemeOverrideKey = typeof themeOverrideKeys[number];
 export type ThemeOverrides = Partial<Record<ThemeOverrideKey, string>>;
 
@@ -160,6 +160,8 @@ export function resolveThemePalette(config: ThemeConfig, mode: "light" | "dark")
     base.surfaceAlt = mix(o.surface, mode === "dark" ? "#ffffff" : "#000000", mode === "dark" ? .06 : .04);
   }
   if (o.sidebar) base.sidebar = o.sidebar;
+  if (o.sidebarText) base.sidebarText = o.sidebarText;
+  if (o.sidebarMuted) base.sidebarMuted = o.sidebarMuted;
   return base;
 }
 
