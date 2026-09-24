@@ -123,3 +123,55 @@ ALLOW_SAMPLE_DATA=true npm run db:seed
 - “论文成果”仅用于记录本人参与的论文产出及投稿/发表状态。
 - “文献库”用于管理外部参考文献、阅读状态、摘要与笔记；BibTeX 默认导入到这里。
 - 从旧版本升级时不会自动移动既有 `papers` 数据，因为程序无法可靠判断历史记录属于个人成果还是外部文献；如旧库曾把参考文献导入“论文管理”，升级后应人工复核并迁移这些记录。
+
+## Remote MCP
+
+Research Workbench exposes a remote MCP endpoint at `/mcp` for trusted AI clients such as Codex.
+
+Set a strong token in the deployment environment:
+
+```dotenv
+MCP_ACCESS_TOKEN=use-a-random-secret-with-at-least-32-characters
+```
+
+The endpoint requires:
+
+```http
+Authorization: Bearer <MCP_ACCESS_TOKEN>
+```
+
+The first MCP version exposes non-destructive and additive tools:
+
+- `search_records`
+- `get_record`
+- `list_tasks`
+- `create_task`
+- `bulk_create_tasks`
+- `create_record`
+- `bulk_create_records`
+- `link_records`
+
+Delete, backup restore, password management, and other destructive operations are intentionally not exposed.
+
+### Codex
+
+On the computer running Codex, store the same token in an environment variable instead of writing the secret directly into Codex configuration.
+
+PowerShell:
+
+```powershell
+$env:RESEARCH_WORKBENCH_MCP_TOKEN="your-secret-token"
+codex mcp add research-workbench --url https://research.example.com/mcp --bearer-token-env-var RESEARCH_WORKBENCH_MCP_TOKEN
+codex mcp list
+```
+
+If your installed Codex build does not accept `--bearer-token-env-var` on the command line, add the server to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.research_workbench]
+url = "https://research.example.com/mcp"
+bearer_token_env_var = "RESEARCH_WORKBENCH_MCP_TOKEN"
+```
+
+Keep `/mcp` behind the same HTTPS reverse proxy as the main application. No inbound port needs to be opened on the computer running Codex.
+
