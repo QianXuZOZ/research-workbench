@@ -36,14 +36,15 @@ export function ResearchGraph() {
   const total = (data?.stages ?? []).reduce((sum, stage) => sum + stage.items.length, 0);
 
   if (loading && !data) return <div className="research-chain-skeleton"><span /><span /><span /></div>;
-  const project = project ?? null;
+  const graph: GraphData = data ?? { projects: [], project: null, stages: [], edges: [] };
+  const project = graph.project;
 
   return <div className="research-chain-wrap">
     <section className="research-chain-toolbar">
       <div>
         <label htmlFor="research-project">当前项目</label>
         <select id="research-project" value={projectId} onChange={(e) => setProjectId(e.target.value)}>
-          {(data?.projects ?? []).map((project) => <option key={project.id} value={project.id}>{project.title}</option>)}
+          {graph.projects.map((project) => <option key={project.id} value={project.id}>{project.title}</option>)}
         </select>
       </div>
       {project && <div className="research-project-meta">
@@ -62,7 +63,7 @@ export function ResearchGraph() {
       </section>
 
       <section className="research-chain-board" aria-label="项目研究链">
-        {(data.stages ?? []).map((stage, index) => {
+        {graph.stages.map((stage, index) => {
           const Icon = icons[stage.key as keyof typeof icons] ?? Boxes;
           return <div className="research-chain-stage" key={stage.key}>
             <header>
