@@ -41,5 +41,6 @@
   },
   "engines": {
     "node": ">=22"
-  }
+  },
+  "description": "Private research operations workbench with remote MCP access."
 }
