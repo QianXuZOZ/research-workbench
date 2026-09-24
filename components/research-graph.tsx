@@ -78,7 +78,7 @@ export function ResearchGraph() {
               </Link>) : <div className="research-stage-empty">暂无记录</div>}
             </div>
             <Link className="research-stage-add" href={`${stage.path}?new=1&projectId=${project.id}`}><Plus size={14} />新增</Link>
-            {index < data.stages.length - 1 && <span className="research-chain-arrow" aria-hidden="true"><ArrowRight size={18} /></span>}
+            {index < graph.stages.length - 1 && <span className="research-chain-arrow" aria-hidden="true"><ArrowRight size={18} /></span>}
           </div>;
         })}
       </section>
