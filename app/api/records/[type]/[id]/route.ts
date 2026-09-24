@@ -7,27 +7,17 @@ import { fromDatabase, isRecordType, recordLabels, recordSchemas, recordTables, 
 import { requireApiSession } from "@/lib/security";
 import { deleteSearchIndex, updateSearchIndex } from "@/lib/search";
 import { calendarDateInTimeZone, jsonError, normalizeDoi, nowIso } from "@/lib/utils";
-import { listRevisions, saveRevision } from "@/lib/revisions";
+import { saveRevision } from "@/lib/revisions";
+import { getRecordDetailData } from "@/lib/record-data";
 
 export async function GET(_request: NextRequest, context: { params: Promise<{ type: string; id: string }> }) {
   const auth = await requireApiSession();
   if ("response" in auth) return auth.response;
   const { type, id } = await context.params;
   if (!isRecordType(type)) return jsonError("未知记录类型", 404, "NOT_FOUND");
-  const row = sqlite.prepare(`SELECT * FROM ${recordTables[type]} WHERE id = ?`).get(id) as Record<string, unknown> | undefined;
-  if (!row) return jsonError("记录不存在", 404, "NOT_FOUND");
-  const tasks = sqlite.prepare("SELECT * FROM tasks WHERE entity_type = ? AND entity_id = ? AND archived_at IS NULL ORDER BY due_at IS NULL, due_at").all(type, id);
-  const attachments = sqlite.prepare("SELECT id, original_name AS originalName, mime_type AS mimeType, size, label, created_at AS createdAt FROM attachments WHERE entity_type = ? AND entity_id = ? ORDER BY created_at DESC").all(type, id);
-  const rawLinks = sqlite.prepare("SELECT * FROM research_links WHERE (source_type = ? AND source_id = ?) OR (target_type = ? AND target_id = ?) ORDER BY created_at DESC").all(type, id, type, id) as Record<string, unknown>[];
-  const links = rawLinks.map((link) => {
-    const otherType = link.source_type === type && link.source_id === id ? String(link.target_type) : String(link.source_type);
-    const otherId = link.source_type === type && link.source_id === id ? String(link.target_id) : String(link.source_id);
-    const table = isRecordType(otherType) ? recordTables[otherType] : null;
-    const other = table ? sqlite.prepare(`SELECT title FROM ${table} WHERE id = ?`).get(otherId) as { title: string } | undefined : undefined;
-    return { ...link, otherType, otherId, otherTitle: other?.title ?? "记录已删除" };
-  });
-  const revisions = listRevisions(type, id, 20);
-  return Response.json({ item: fromDatabase(type, row), tasks, attachments, links, revisions });
+  const data = getRecordDetailData(type, id);
+  if (!data) return jsonError("记录不存在", 404, "NOT_FOUND");
+  return Response.json(data);
 }
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ type: string; id: string }> }) {
