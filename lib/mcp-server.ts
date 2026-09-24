@@ -87,7 +87,7 @@ export function buildResearchMcpServer() {
 
   server.registerTool("search_records", {
     description: "Search projects, publication outputs, literature, patents, growth records, and tasks by title or keyword.",
-    inputSchema: z.object({ query: z.string().trim().min(2).max(120), limit: z.number().int().min(1).max(50).default(20) }),
+    inputSchema: { query: z.string().trim().min(2).max(120), limit: z.number().int().min(1).max(50).default(20) },
   }, async ({ query, limit }) => {
     const terms = query.split(/\s+/).filter(Boolean);
     const hasShortTerm = terms.some((term) => Array.from(term).length < 3);
@@ -99,7 +99,7 @@ export function buildResearchMcpServer() {
 
   server.registerTool("get_record", {
     description: "Get one research record with its linked tasks, attachments metadata, and research links.",
-    inputSchema: z.object({ type: recordTypeSchema, id: z.string().uuid() }),
+    inputSchema: { type: recordTypeSchema, id: z.string().uuid() },
   }, async ({ type, id }) => {
     const row = sqlite.prepare(`SELECT * FROM ${recordTables[type]} WHERE id = ?`).get(id) as Record<string, unknown> | undefined;
     if (!row) throw new Error("Record not found");
@@ -111,13 +111,13 @@ export function buildResearchMcpServer() {
 
   server.registerTool("list_tasks", {
     description: "List active research tasks with optional status, parent record, and due-date filters.",
-    inputSchema: z.object({
+    inputSchema: {
       status: taskStatusSchema.optional(),
       entityType: z.string().max(30).optional(),
       entityId: z.string().uuid().optional(),
       dueBefore: z.string().optional(),
       limit: z.number().int().min(1).max(200).default(100),
-    }),
+    },
   }, async ({ status, entityType, entityId, dueBefore, limit }) => {
     const where = ["archived_at IS NULL"]; const values: unknown[] = [];
     if (status) { where.push("status=?"); values.push(status); }
@@ -131,12 +131,12 @@ export function buildResearchMcpServer() {
 
   server.registerTool("create_task", {
     description: "Create one task or milestone. Optionally link it to a project or another research record.",
-    inputSchema: taskInput,
+    inputSchema: taskInput.shape,
   }, async (input) => result({ item: insertTask(input) }));
 
   server.registerTool("bulk_create_tasks", {
     description: "Atomically create up to 100 tasks or milestones. If any item is invalid or fails, none are committed.",
-    inputSchema: z.object({ items: z.array(taskInput).min(1).max(100) }),
+    inputSchema: { items: z.array(taskInput).min(1).max(100) },
   }, async ({ items }) => {
     const validated = items.map((item) => taskInput.parse(item));
     const created = sqlite.transaction(() => validated.map((item) => insertTask(item)))();
@@ -145,7 +145,7 @@ export function buildResearchMcpServer() {
 
   server.registerTool("create_record", {
     description: "Create one project, publication output, literature item, patent, or growth record.",
-    inputSchema: z.object({ type: recordTypeSchema, data: z.record(z.string(), z.unknown()) }),
+    inputSchema: { type: recordTypeSchema, data: z.record(z.string(), z.unknown()) },
   }, async ({ type, data }) => {
     try {
       return result({ item: insertRecord(type, prepareRecord(type, data)) });
@@ -157,7 +157,7 @@ export function buildResearchMcpServer() {
 
   server.registerTool("bulk_create_records", {
     description: "Atomically create up to 100 records of one type. Intended for AI-assisted batch entry.",
-    inputSchema: z.object({ type: recordTypeSchema, items: z.array(z.record(z.string(), z.unknown())).min(1).max(100) }),
+    inputSchema: { type: recordTypeSchema, items: z.array(z.record(z.string(), z.unknown())).min(1).max(100) },
   }, async ({ type, items }) => {
     const validated = items.map((item) => prepareRecord(type, item));
     try {
@@ -171,11 +171,11 @@ export function buildResearchMcpServer() {
 
   server.registerTool("link_records", {
     description: "Create a semantic link between two existing research records or tasks.",
-    inputSchema: z.object({
+    inputSchema: {
       sourceType: z.string().max(30), sourceId: z.string().uuid(),
       targetType: z.string().max(30), targetId: z.string().uuid(),
       relation: z.string().trim().min(1).max(60).default("related"),
-    }),
+    },
   }, async ({ sourceType, sourceId, targetType, targetId, relation }) => {
     if (sourceType === targetType && sourceId === targetId) throw new Error("A record cannot link to itself");
     if (!recordExists(sourceType, sourceId) || !recordExists(targetType, targetId)) throw new Error("Source or target record does not exist");
