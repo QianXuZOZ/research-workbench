@@ -5,7 +5,7 @@ import { applyThemeConfig } from "@/lib/theme-client";
 import { defaultThemeConfig, normalizeThemeConfig, resolveThemePalette, themeOverrideKeys, themePresets, type ThemeConfig, type ThemeMode, type ThemeOverrideKey, type ThemePresetId } from "@/lib/theme-presets";
 
 const labels: Record<ThemeOverrideKey,string> = {
-  accent:"主题强调色", title:"标题 / 关键文字", body:"正文文字", muted:"次级文字", background:"页面背景", surface:"卡片背景", sidebar:"侧栏背景",
+  accent:"主题强调色", title:"标题 / 关键文字", body:"正文文字", muted:"次级文字", background:"页面背景", surface:"卡片背景", sidebar:"侧栏背景", sidebarText:"侧栏主文字", sidebarMuted:"侧栏次级文字",
 };
 
 export function ThemeCenter({ value, onChange, onSave, saving }: { value: ThemeConfig; onChange: (value: ThemeConfig) => void; onSave: () => void; saving: boolean }) {
@@ -56,7 +56,7 @@ export function ThemeCenter({ value, onChange, onSave, saving }: { value: ThemeC
     <div className="theme-customize">
       <div className="theme-section-title"><div><strong>自定义关键颜色</strong><span>修改后立即预览；“跟随主题”表示不覆盖当前预设</span></div><button type="button" className="button ghost" onClick={reset}><RotateCcw size={14}/>恢复 Codex 默认</button></div>
       <div className="theme-color-grid">{themeOverrideKeys.map((key) => {
-        const fallback = key==="accent"?palette.accent:key==="title"?palette.text:key==="body"?palette.text2:key==="muted"?palette.text3:key==="background"?palette.background:key==="surface"?palette.surface:palette.sidebar;
+        const fallback = key==="accent"?palette.accent:key==="title"?palette.text:key==="body"?palette.text2:key==="muted"?palette.text3:key==="background"?palette.background:key==="surface"?palette.surface:key==="sidebar"?palette.sidebar:key==="sidebarText"?palette.sidebarText:palette.sidebarMuted;
         const value = config.overrides[key] ?? fallback;
         return <label className="theme-color-control" key={key}><span>{labels[key]}<small>{config.overrides[key]?"已覆盖":"跟随主题"}</small></span><div><input type="color" value={value} onChange={(e)=>setOverride(key,e.target.value)}/><code>{value.toUpperCase()}</code>{config.overrides[key] && <button type="button" onClick={()=>clearOverride(key)} aria-label={`恢复${labels[key]}`}><RotateCcw size={13}/></button>}</div></label>;
       })}</div>
