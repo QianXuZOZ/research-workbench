@@ -423,3 +423,5 @@ input[type="checkbox"] { width: 17px; height: 17px; min-height: auto; accent-col
   .theme-mode-switch button { flex:1; justify-content:center; }
   .theme-section-title { align-items:flex-start; flex-direction:column; }
 }
+
+.metric-row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
