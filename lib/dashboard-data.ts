@@ -14,7 +14,7 @@ export type DashboardData = {
   outputs: { papers: number; patents: number; completedProjects: number };
   riskyProjects: Record<string, unknown>[];
   activity: Record<string, unknown>[];
-  promotion: null | Record<string, unknown>;
+  promotion: null | { title: string; progress: number; requiredGaps: number; metrics: Record<string, unknown>[] };
 };
 
 function configuredTimezone() {
@@ -46,7 +46,7 @@ export function getDashboardData(timezone = configuredTimezone()): DashboardData
   };
   const riskyProjects = sqlite.prepare("SELECT id,title,risk,progress,end_date FROM projects WHERE archived_at IS NULL AND status IN ('planning','active','paused') AND (risk != 'normal' OR (end_date IS NOT NULL AND end_date <= ?)) ORDER BY CASE risk WHEN 'high' THEN 0 WHEN 'watch' THEN 1 ELSE 2 END, end_date LIMIT 5").all(weekEnd) as Record<string, unknown>[];
   const activity = sqlite.prepare("SELECT * FROM activity_logs ORDER BY created_at DESC LIMIT 8").all() as Record<string, unknown>[];
-  const promotion = getPromotionOverview()[0] ?? null;
+  const promotion = (getPromotionOverview()[0] ?? null) as DashboardData["promotion"];
 
   return { today, weekEnd, timezone, taskCounts, upcoming, projectStats, paperStats, patentStats, outputs, riskyProjects, activity, promotion };
 }
