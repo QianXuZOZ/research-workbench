@@ -1,17 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, Award, BookOpenText, CalendarClock, CheckCircle2, ChevronRight, CircleDot, Clock3, FlaskConical, Lightbulb, ListTodo, Plus, RefreshCw, ShieldAlert, Sparkles, Zap } from "lucide-react";
-import { apiFetch, formatDate } from "@/lib/client-api";
+import { AlertTriangle, ArrowUpRight, Award, BookOpenText, CalendarClock, CheckCircle2, ChevronRight, CircleDot, Clock3, FlaskConical, Lightbulb, ListTodo, Plus, Sparkles, Zap } from "lucide-react";
+import { formatDate } from "@/lib/client-api";
+import type { DashboardData } from "@/lib/dashboard-data";
 import { PageHeader } from "@/components/page-header";
-
-type DashboardData = {
-  taskCounts: { overdue: number; due_week: number; done: number; total: number };
-  upcoming: Record<string, unknown>[]; projectStats: { status: string; count: number }[]; paperStats: { status: string; count: number }[]; patentStats: { status: string; count: number }[];
-  outputs: { papers: number; patents: number; completedProjects: number }; timezone: string; riskyProjects: Record<string, unknown>[]; activity: Record<string, unknown>[];
-  promotion: null | { title: string; progress: number; requiredGaps: number; metrics: Record<string, unknown>[] };
-};
 
 const statusNames: Record<string, string> = { planning: "筹备", active: "进行中", paused: "暂停", completed: "完成", idea: "选题", drafting: "撰写", submitted: "已投稿", revision: "返修", accepted: "录用", published: "发表", rejected: "退稿", filed: "已申请", examining: "审查中", granted: "授权", expired: "失效" };
 
@@ -20,12 +13,7 @@ function Distribution({ title, items, href }: { title: string; items: { status: 
   return <div className="distribution"><div className="section-row"><h3>{title}</h3><Link href={href}>查看全部 <ArrowUpRight size={15} /></Link></div><div className="distribution-bar" aria-label={`${title}阶段分布`}>{items.map((item) => <span key={item.status} style={{ flexGrow: item.count }} title={`${statusNames[item.status] ?? item.status}：${item.count}`} />)}</div><div className="distribution-legend">{items.length ? items.slice(0, 4).map((item) => <span key={item.status}><i />{statusNames[item.status] ?? item.status}<strong>{item.count}</strong></span>) : <span>暂无记录</span>}</div><div className="distribution-total"><strong>{total}</strong><span>当前记录</span></div></div>;
 }
 
-export function DashboardView() {
-  const [data, setData] = useState<DashboardData | null>(null); const [error, setError] = useState("");
-  function load() { setError(""); apiFetch<DashboardData>("/api/dashboard").then(setData).catch((e) => setError(e.message)); }
-  useEffect(load, []);
-  if (error) return <div className="load-error"><ShieldAlert size={28} /><h2>总览暂时无法载入</h2><p>{error}</p><button className="button secondary" onClick={load}><RefreshCw size={16} />重试</button></div>;
-  if (!data) return <div className="dashboard-skeleton"><div /><div /><div /><div /></div>;
+export function DashboardView({ initialData: data }: { initialData: DashboardData }) {
   const overdue = Number(data.taskCounts.overdue ?? 0); const week = Number(data.taskCounts.due_week ?? 0); const done = Number(data.taskCounts.done ?? 0); const total = Number(data.taskCounts.total ?? 0);
   const completion = total ? Math.round((done / total) * 100) : 0;
   return <div className="dashboard-page">
