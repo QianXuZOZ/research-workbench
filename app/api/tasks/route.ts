@@ -5,20 +5,17 @@ import { requireApiSession } from "@/lib/security";
 import { jsonError, nowIso } from "@/lib/utils";
 import { updateSearchIndex } from "@/lib/search";
 import { taskSchema } from "@/lib/tasks";
+import { listTaskItems } from "@/lib/task-data";
 
 export async function GET(request: NextRequest) {
   const auth = await requireApiSession();
   if ("response" in auth) return auth.response;
   const params = request.nextUrl.searchParams;
-  const status = params.get("status");
-  const from = params.get("from");
-  const to = params.get("to");
-  const where = ["archived_at IS NULL"];
-  const values: unknown[] = [];
-  if (status) { where.push("status = ?"); values.push(status); }
-  if (from) { where.push("due_at >= ?"); values.push(from); }
-  if (to) { where.push("due_at <= ?"); values.push(to); }
-  const items = sqlite.prepare(`SELECT * FROM tasks WHERE ${where.join(" AND ")} ORDER BY CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END, due_at IS NULL, due_at`).all(...values);
+  const items = listTaskItems({
+    status: params.get("status"),
+    from: params.get("from"),
+    to: params.get("to"),
+  });
   return Response.json({ items });
 }
 

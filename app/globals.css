@@ -425,3 +425,35 @@ input[type="checkbox"] { width: 17px; height: 17px; min-height: auto; accent-col
 }
 
 .metric-row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+
+
+/* Navigation UX v2 */
+.navigation-progress { position: fixed; z-index: 220; top: 0; left: var(--sidebar); right: 0; height: 2px; overflow: hidden; pointer-events: none; background: color-mix(in srgb, var(--cyan) 12%, transparent); }
+.navigation-progress i { display: block; width: 34%; height: 100%; border-radius: 999px; background: var(--cyan); animation: navigation-progress 1.05s cubic-bezier(.4,0,.2,1) infinite; }
+.main-nav a.pending { color: var(--sidebar-fg); background: var(--sidebar-active-bg); cursor: progress; }
+.main-nav a.pending svg { color: var(--cyan); animation: nav-icon-pulse .85s ease-in-out infinite alternate; }
+
+.route-loading { display: grid; gap: 18px; animation: route-fade .16s ease-out; }
+.route-loading-header { display: grid; gap: 9px; width: min(560px, 70%); }
+.route-loading-header span, .route-loading-header b, .route-loading-toolbar i, .route-loading-grid section, .route-loading-panel span { display: block; background: linear-gradient(90deg, var(--surface-2) 20%, var(--surface-3) 45%, var(--surface-2) 70%); background-size: 220% 100%; animation: route-shimmer 1.25s ease-in-out infinite; }
+.route-loading-header span { width: 46%; height: 34px; border-radius: 9px; }
+.route-loading-header b { width: 72%; height: 14px; border-radius: 6px; }
+.route-loading-toolbar { display: flex; gap: 9px; }
+.route-loading-toolbar i { width: 132px; height: 40px; border-radius: 10px; }
+.route-loading-toolbar i:last-child { width: 92px; }
+.route-loading-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; }
+.route-loading-grid section { min-height: 128px; border-radius: var(--radius); border: 1px solid var(--line); }
+.route-loading-panel { min-height: 280px; padding: 22px; display: grid; align-content: start; gap: 13px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.route-loading-panel span { height: 46px; border-radius: 9px; }
+.route-loading-panel span:first-child { width: 38%; height: 20px; }
+@keyframes navigation-progress { 0% { transform: translateX(-110%); } 55% { transform: translateX(145%); } 100% { transform: translateX(310%); } }
+@keyframes nav-icon-pulse { from { opacity: .6; } to { opacity: 1; } }
+@keyframes route-shimmer { 0% { background-position: 140% 0; } 100% { background-position: -80% 0; } }
+@keyframes route-fade { from { opacity: .55; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+@media (max-width: 1050px) { .navigation-progress { left: 0; } }
+@media (max-width: 640px) {
+  .route-loading-header { width: 92%; }
+  .route-loading-grid { grid-template-columns: 1fr; }
+  .route-loading-grid section { min-height: 92px; }
+  .route-loading-panel { min-height: 220px; padding: 16px; }
+}

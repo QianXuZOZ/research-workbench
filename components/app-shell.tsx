@@ -17,15 +17,32 @@ const nav = [
 const entityPath: Record<string, string> = { projects: "projects", papers: "papers", literature: "literature", questions: "questions", hypotheses: "hypotheses", experiments: "experiments", runs: "runs", findings: "findings", artifacts: "artifacts", patents: "patents", growth: "growth", tasks: "tasks" };
 
 export function AppShell({ children, email, displayName, avatarUrl, csrf, mustChangePassword, timeZone, initialTheme }: { children: React.ReactNode; email: string; displayName: string; avatarUrl: string | null; csrf: string; mustChangePassword: boolean; timeZone: string; initialTheme: ThemeConfig }) {
-  const pathname = usePathname(); const router = useRouter(); const [mobileOpen, setMobileOpen] = useState(false); const [dark, setDark] = useState(false); const [themeConfig, setThemeConfig] = useState<ThemeConfig>(initialTheme); const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(avatarUrl);
+  const pathname = usePathname(); const router = useRouter(); const [mobileOpen, setMobileOpen] = useState(false); const [pendingHref, setPendingHref] = useState<string | null>(null); const [dark, setDark] = useState(false); const [themeConfig, setThemeConfig] = useState<ThemeConfig>(initialTheme); const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(avatarUrl);
   const [searchOpen, setSearchOpen] = useState(false); const [query, setQuery] = useState(""); const [results, setResults] = useState<{ entityType: string; entityId: string; title: string; snippet: string }[]>([]); const searchRef = useRef<HTMLInputElement>(null);
   useEffect(() => { const config = readStoredThemeConfig(initialTheme); const applied = applyThemeConfig(config, true); setThemeConfig(applied.config); setDark(applied.mode === "dark"); const media = window.matchMedia("(prefers-color-scheme: dark)"); const onSystem = () => { if (config.mode === "system") { const next = applyThemeConfig(config, false); setDark(next.mode === "dark"); } }; media.addEventListener("change", onSystem); return () => media.removeEventListener("change", onSystem); }, [initialTheme]);
   useEffect(() => { const handler = (event: Event) => { const config = (event as CustomEvent<ThemeConfig>).detail; const applied = applyThemeConfig(config, true); setThemeConfig(applied.config); setDark(applied.mode === "dark"); }; window.addEventListener("workbench-theme-change", handler); return () => window.removeEventListener("workbench-theme-change", handler); }, []);
+  useEffect(() => { setPendingHref(null); }, [pathname]);
+  useEffect(() => {
+    const timers: number[] = [];
+    const prefetch = () => nav.forEach(([href], index) => timers.push(window.setTimeout(() => router.prefetch(href), index * 90)));
+    const idleWindow = window as Window & { requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
+    if (idleWindow.requestIdleCallback) {
+      const handle = idleWindow.requestIdleCallback(prefetch, { timeout: 1800 });
+      return () => { idleWindow.cancelIdleCallback?.(handle); timers.forEach((timer) => window.clearTimeout(timer)); };
+    }
+    const handle = window.setTimeout(prefetch, 900);
+    return () => { window.clearTimeout(handle); timers.forEach((timer) => window.clearTimeout(timer)); };
+  }, [router]);
   useEffect(() => { if (!searchOpen || query.trim().length < 2) { setResults([]); return; } const timer = setTimeout(() => { apiFetch<{ items: typeof results }>(`/api/search?q=${encodeURIComponent(query)}`).then((data) => setResults(data.items)).catch(() => setResults([])); }, 220); return () => clearTimeout(timer); }, [query, searchOpen]);
   useEffect(() => { const avatarHandler = (event: Event) => setCurrentAvatarUrl((event as CustomEvent<{ url: string | null }>).detail.url); window.addEventListener("profile-avatar-changed", avatarHandler); return () => window.removeEventListener("profile-avatar-changed", avatarHandler); }, []);
   useEffect(() => { const handler = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 0); } if (event.key === "Escape") setSearchOpen(false); }; window.addEventListener("keydown", handler); return () => window.removeEventListener("keydown", handler); }, []);
   function toggleTheme() { const next = { ...themeConfig, mode: dark ? "light" : "dark" } as ThemeConfig; const applied = applyThemeConfig(next, true); setThemeConfig(applied.config); setDark(applied.mode === "dark"); window.dispatchEvent(new CustomEvent("workbench-theme-change", { detail: applied.config })); }
   async function logout() { await apiFetch("/api/auth/logout", { method: "POST" }); router.replace("/login"); router.refresh(); }
+  function beginNavigation(href: string) {
+    if (!pathname.startsWith(href)) setPendingHref(href);
+    setMobileOpen(false);
+  }
+  const navPath = pendingHref ?? pathname;
   const initials = (displayName || email).slice(0, 1).toUpperCase();
   return (
     <div className="app-shell" data-csrf={csrf} data-timezone={timeZone}>
@@ -33,13 +50,14 @@ export function AppShell({ children, email, displayName, avatarUrl, csrf, mustCh
       <aside className={`sidebar ${mobileOpen ? "open" : ""}`}>
         <div className="sidebar-head"><Link href="/dashboard" className="brand-lockup"><span className="brand-mark"><Zap size={18} /></span><span>电研工作台</span></Link><button className="icon-button mobile-only" onClick={() => setMobileOpen(false)} aria-label="关闭导航"><X size={20} /></button></div>
         <nav className="main-nav" aria-label="主导航">
-          {nav.map(([href, label, Icon]) => <Link key={href} href={href} className={pathname.startsWith(href) ? "active" : ""} onClick={() => setMobileOpen(false)}><Icon size={18} /><span>{label}</span>{pathname.startsWith(href) && <span className="nav-current" />}</Link>)}
+          {nav.map(([href, label, Icon]) => <Link key={href} href={href} prefetch onMouseEnter={() => router.prefetch(href)} onFocus={() => router.prefetch(href)} className={`${navPath.startsWith(href) ? "active" : ""} ${pendingHref === href ? "pending" : ""}`.trim()} onClick={() => beginNavigation(href)}><Icon size={18} /><span>{label}</span>{navPath.startsWith(href) && <span className="nav-current" />}</Link>)}
         </nav>
         <div className="sidebar-spacer" />
         <div className="user-chip">{currentAvatarUrl ? <img className="avatar avatar-image" src={currentAvatarUrl} alt={displayName} onError={() => setCurrentAvatarUrl(null)} /> : <span className="avatar">{initials}</span>}<div><strong>{displayName}</strong><span>{email}</span></div><Link className="icon-button" href="/settings" aria-label="个人设置" title="个人设置"><Settings size={16} /></Link><button className="icon-button" onClick={logout} aria-label="退出登录" title="退出登录"><LogOut size={17} /></button></div>
       </aside>
       {mobileOpen && <button className="nav-scrim" aria-label="关闭导航" onClick={() => setMobileOpen(false)} />}
-      <div className="workspace">
+      {pendingHref && <div className="navigation-progress" role="progressbar" aria-label="正在切换页面"><i /></div>}
+      <div className="workspace" aria-busy={Boolean(pendingHref)}>
         <header className="topbar">
           <button className="icon-button mobile-only" onClick={() => setMobileOpen(true)} aria-label="打开导航"><Menu size={21} /></button><Link href="/dashboard" className="mobile-top-brand mobile-only">电研工作台</Link>
           <button className="global-search" onClick={() => { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 0); }}><Search size={18} /><span>搜索项目、科研过程、论文成果、文献、专利或任务</span><kbd>Ctrl K</kbd></button>

@@ -8,9 +8,9 @@ export const dynamic = "force-dynamic";
 
 export default async function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession(); if (!session) redirect("/login");
-  const displayName = (sqlite.prepare("SELECT value FROM settings WHERE key='displayName'").get() as { value: string } | undefined)?.value ?? "研究者";
-  const settingRows = sqlite.prepare("SELECT key,value FROM settings WHERE key IN ('timezone','themePreset','themeMode','themeOverrides')").all() as { key: string; value: string }[];
+  const settingRows = sqlite.prepare("SELECT key,value FROM settings WHERE key IN ('displayName','timezone','themePreset','themeMode','themeOverrides')").all() as { key: string; value: string }[];
   const settings = Object.fromEntries(settingRows.map((row) => [row.key,row.value]));
+  const displayName = settings.displayName ?? "研究者";
   const timeZone = settings.timezone ?? process.env.APP_TIMEZONE ?? "Asia/Hong_Kong";
   let overrides = {}; try { overrides = JSON.parse(settings.themeOverrides ?? "{}"); } catch {}
   const initialTheme = normalizeThemeConfig({ preset: settings.themePreset as never, mode: settings.themeMode as never, overrides });
