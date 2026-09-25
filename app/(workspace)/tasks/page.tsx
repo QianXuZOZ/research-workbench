@@ -1,2 +1,6 @@
 import { TasksView } from "@/components/tasks-view";
-export default function TasksPage() { return <TasksView />; }
+import { listTaskItems } from "@/lib/task-data";
+
+export default function TasksPage() {
+  return <TasksView initialTasks={listTaskItems()} />;
+}
