@@ -5,8 +5,8 @@ import { PassThrough } from "node:stream";
 import { createHash } from "node:crypto";
 import { sqlite } from "@/lib/db";
 
-export const BACKUP_SCHEMA_VERSION = 2;
-export const backupTables = ["projects", "papers", "literature_items", "research_questions", "hypotheses", "experiments", "experiment_runs", "findings", "artifacts", "patents", "growth_items", "tasks", "promotion_cycles", "promotion_metrics", "promotion_evidence_links", "attachments", "tags", "record_tags", "research_links", "record_revisions", "activity_logs", "settings"] as const;
+export const BACKUP_SCHEMA_VERSION = 3;
+export const backupTables = ["projects", "papers", "literature_items", "research_questions", "hypotheses", "experiments", "experiment_runs", "findings", "artifacts", "patents", "growth_items", "tasks", "promotion_cycles", "promotion_metrics", "promotion_evidence_links", "attachments", "tags", "record_tags", "research_links", "record_revisions", "activity_logs", "inbox_items", "weekly_reviews", "settings"] as const;
 
 
 async function sha256File(filePath: string) {
