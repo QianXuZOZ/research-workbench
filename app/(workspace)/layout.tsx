@@ -16,5 +16,5 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
   let overrides = {}; try { overrides = JSON.parse(settings.themeOverrides ?? "{}"); } catch {}
   const initialTheme = normalizeThemeConfig({ preset: settings.themePreset as never, mode: settings.themeMode as never, overrides });
   const hasAvatar = Boolean(sqlite.prepare("SELECT 1 FROM attachments WHERE entity_type='profile' AND entity_id='avatar' LIMIT 1").get());
-  return <AppShell workbenchName={workbenchName} email={session.email} displayName={displayName} avatarUrl={hasAvatar ? "/api/profile/avatar" : null} csrf={session.csrfToken} mustChangePassword={session.mustChangePassword} timeZone={timeZone} initialTheme={initialTheme}>{children}</AppShell>;
+  return <AppShell workbenchName={workbenchName} email={session.email} displayName={displayName} avatarUrl={hasAvatar ? "/api/profile/avatar" : null} csrf={session.csrfToken} timeZone={timeZone} initialTheme={initialTheme}>{children}</AppShell>;
 }
