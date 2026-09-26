@@ -11,7 +11,7 @@ import { updateSearchIndex } from "@/lib/search";
 
 export async function POST(request: NextRequest) {
   const auth = await requireApiSession(request); if ("response" in auth) return auth.response;
-  const count = ["projects", "papers", "literature_items", "research_questions", "hypotheses", "experiments", "experiment_runs", "findings", "artifacts", "patents", "growth_items", "tasks", "promotion_cycles"].reduce((sum, table) => sum + Number((sqlite.prepare(`SELECT COUNT(*) count FROM ${table}`).get() as { count: number }).count), 0);
+  const count = ["projects", "papers", "literature_items", "research_questions", "hypotheses", "experiments", "experiment_runs", "findings", "artifacts", "patents", "growth_items", "tasks", "promotion_cycles", "inbox_items", "weekly_reviews"].reduce((sum, table) => sum + Number((sqlite.prepare(`SELECT COUNT(*) count FROM ${table}`).get() as { count: number }).count), 0);
   if (count > 0) return jsonError("恢复仅允许在空白实例中进行。请先使用新的数据目录启动应用。", 409, "INSTANCE_NOT_EMPTY");
   const form = await request.formData(); const file = form.get("file");
   if (!(file instanceof File) || !file.name.toLowerCase().endsWith(".zip")) return jsonError("请选择工作台备份 ZIP", 400, "VALIDATION_ERROR");
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   if (!dataEntry || !manifestEntry) return jsonError("备份缺少数据或校验清单", 400, "INVALID_BACKUP");
   let payload: { schemaVersion: number; tables: Record<string, Record<string, unknown>[]> }; let manifest: { schemaVersion: number; files: { path: string; sha256: string }[] };
   try { payload = JSON.parse(dataEntry.getData().toString("utf8")); manifest = JSON.parse(manifestEntry.getData().toString("utf8")); } catch { return jsonError("备份数据格式无效", 400, "INVALID_BACKUP"); }
-  if (![1, BACKUP_SCHEMA_VERSION].includes(payload.schemaVersion) || ![1, BACKUP_SCHEMA_VERSION].includes(manifest.schemaVersion)) return jsonError("备份版本与当前程序不兼容", 409, "BACKUP_VERSION_MISMATCH");
+  if (![1, 2, BACKUP_SCHEMA_VERSION].includes(payload.schemaVersion) || ![1, 2, BACKUP_SCHEMA_VERSION].includes(manifest.schemaVersion)) return jsonError("备份版本与当前程序不兼容", 409, "BACKUP_VERSION_MISMATCH");
   for (const item of manifest.files) {
     if (item.path.includes("..") || path.isAbsolute(item.path)) return jsonError("备份包含不安全路径", 400, "INVALID_BACKUP");
     const entry = zip.getEntry(item.path); if (!entry) return jsonError(`备份缺少 ${item.path}`, 400, "INVALID_BACKUP");
