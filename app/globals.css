@@ -457,3 +457,9 @@ input[type="checkbox"] { width: 17px; height: 17px; min-height: auto; accent-col
   .route-loading-grid section { min-height: 92px; }
   .route-loading-panel { min-height: 220px; padding: 16px; }
 }
+
+
+/* Configurable workspace branding */
+.brand-lockup > span:last-child { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.sidebar-head .brand-lockup { min-width: 0; max-width: calc(100% - 42px); }
+.mobile-top-brand { max-width: min(48vw, 220px); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
