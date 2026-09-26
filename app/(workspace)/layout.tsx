@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { sqlite } from "@/lib/db";
@@ -6,6 +7,11 @@ import { normalizeThemeConfig } from "@/lib/theme-presets";
 import { DEFAULT_WORKBENCH_NAME, getAppSettings } from "@/lib/app-settings";
 
 export const dynamic = "force-dynamic";
+
+export function generateMetadata(): Metadata {
+  const workbenchName = getAppSettings(["workbenchName"]).workbenchName?.trim() || DEFAULT_WORKBENCH_NAME;
+  return { title: { default: workbenchName, template: `%s · ${workbenchName}` } };
+}
 
 export default async function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession(); if (!session) redirect("/login");
