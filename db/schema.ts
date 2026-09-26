@@ -326,6 +326,30 @@ export const activityLogs = sqliteTable("activity_logs", {
   createdAt: text("created_at").notNull(),
 }, (table) => [index("idx_activity_logs_created").on(table.createdAt)]);
 
+
+export const inboxItems = sqliteTable("inbox_items", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  body: text("body"),
+  kind: text("kind").notNull().default("note"),
+  sourceUrl: text("source_url"),
+  status: text("status").notNull().default("inbox"),
+  targetType: text("target_type"),
+  targetId: text("target_id"),
+  processedAt: text("processed_at"),
+  ...audit,
+}, (table) => [index("idx_inbox_status_created").on(table.status, table.createdAt)]);
+
+export const weeklyReviews = sqliteTable("weekly_reviews", {
+  id: text("id").primaryKey(),
+  periodStart: text("period_start").notNull(),
+  periodEnd: text("period_end").notNull(),
+  reflection: text("reflection"),
+  nextFocus: text("next_focus"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+}, (table) => [uniqueIndex("idx_weekly_reviews_period").on(table.periodStart)]);
+
 export const settings = sqliteTable("settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
