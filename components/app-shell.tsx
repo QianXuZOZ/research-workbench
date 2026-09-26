@@ -3,20 +3,23 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Award, Beaker, BookMarked, BookOpenText, BriefcaseBusiness, CalendarCheck2, CalendarRange, ChevronRight, ClipboardCheck, FileBadge2, GraduationCap, Inbox, LayoutDashboard, LogOut, Menu, Moon, Plus, Search, Settings, Sun, X, Zap } from "lucide-react";
+import { Award, Beaker, BookMarked, BookOpenText, BriefcaseBusiness, CalendarCheck2, CalendarRange, ChevronRight, ClipboardCheck, FileBadge2, GraduationCap, Inbox, LayoutDashboard, LogOut, Menu, Moon, Plus, Search, Settings, Sun, X, Zap, type LucideIcon } from "lucide-react";
 import { apiFetch } from "@/lib/client-api";
 import { WebMcpTools } from "@/components/webmcp-tools";
 import { applyThemeConfig, readStoredThemeConfig } from "@/lib/theme-client";
 import type { ThemeConfig } from "@/lib/theme-presets";
 import { QuickCaptureDialog } from "@/components/quick-capture-dialog";
 
-const navGroups = [
+type NavItem = readonly [string, string, LucideIcon];
+type NavGroup = { label: string; items: readonly NavItem[] };
+
+const navGroups: readonly NavGroup[] = [
   { label: "工作", items: [["/dashboard","总览",LayoutDashboard],["/focus","今日",CalendarRange],["/inbox","收集箱",Inbox],["/tasks","任务中心",CalendarCheck2],["/projects","项目管理",BriefcaseBusiness]] },
   { label: "研究", items: [["/research","科研过程",Beaker],["/papers","论文成果",BookOpenText],["/literature","文献库",BookMarked],["/patents","专利管理",FileBadge2]] },
   { label: "成长", items: [["/growth","个人成长",GraduationCap],["/promotion","晋升管理",Award],["/reviews","复盘中心",ClipboardCheck]] },
   { label: "系统", items: [["/settings","系统设置",Settings]] },
-] as const;
-const nav = navGroups.flatMap((group) => group.items);
+];
+const nav: NavItem[] = navGroups.flatMap((group) => Array.from(group.items));
 
 const entityPath: Record<string, string> = { projects: "projects", papers: "papers", literature: "literature", questions: "questions", hypotheses: "hypotheses", experiments: "experiments", runs: "runs", findings: "findings", artifacts: "artifacts", patents: "patents", growth: "growth", tasks: "tasks" };
 
@@ -28,7 +31,7 @@ export function AppShell({ children, workbenchName, email, displayName, avatarUr
   useEffect(() => { setPendingHref(null); }, [pathname]);
   useEffect(() => {
     const timers: number[] = [];
-    const prefetch = () => nav.forEach(([href], index) => timers.push(window.setTimeout(() => router.prefetch(href), index * 90)));
+    const prefetch = () => { nav.forEach(([href], index) => { timers.push(window.setTimeout(() => router.prefetch(href), index * 90)); }); };
     const idleWindow = window as Window & { requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
     if (idleWindow.requestIdleCallback) {
       const handle = idleWindow.requestIdleCallback(prefetch, { timeout: 1800 });
