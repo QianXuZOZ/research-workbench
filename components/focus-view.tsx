@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { AlertTriangle, ArrowUpRight, CalendarDays, Check, CheckCircle2, Clock3, Inbox, RefreshCw, TriangleAlert } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { apiFetch, formatDate } from "@/lib/client-api";
 import { PageHeader } from "@/components/page-header";
 
@@ -12,6 +12,8 @@ type FocusData={today:string;weekEnd:string;timezone:string;todayTasks:Row[];wee
 export function FocusView({initialData}:{initialData:FocusData}) {
   const [data,setData]=useState(initialData); const [busy,setBusy]=useState("");
   async function reload(){ const res=await apiFetch<FocusData>("/api/focus"); setData(res); }
+  useEffect(()=>setData(initialData),[initialData]);
+  useEffect(()=>{const handler=()=>void reload();window.addEventListener("workbench-data-changed",handler);return()=>window.removeEventListener("workbench-data-changed",handler);},[]);
   async function taskAction(id:string,status:string){ setBusy(id); try{await apiFetch("/api/tasks/"+id,{method:"PATCH",body:JSON.stringify({status})}); await reload();}finally{setBusy("");}}
   const overdue=data.todayTasks.filter(t=>t.due_at&&String(t.due_at)<data.today).length;
   const dateLabel=new Intl.DateTimeFormat("zh-CN",{timeZone:data.timezone,year:"numeric",month:"long",day:"numeric",weekday:"long"}).format(new Date());
