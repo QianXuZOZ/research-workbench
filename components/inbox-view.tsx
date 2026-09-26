@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, ExternalLink, Inbox, Plus, Search, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { apiFetch, formatDate } from "@/lib/client-api";
 import { PageHeader } from "@/components/page-header";
 import type { InboxItem } from "@/lib/inbox-data";
@@ -14,6 +14,8 @@ export function InboxView({initialItems}:{initialItems:InboxItem[]}) {
   const [items,setItems]=useState(initialItems); const [status,setStatus]=useState("inbox"); const [query,setQuery]=useState("");
   const [targets,setTargets]=useState<Record<string,string>>({}); const [busy,setBusy]=useState("");
   const [form,setForm]=useState({title:"",body:"",sourceUrl:""});
+  useEffect(()=>setItems(initialItems),[initialItems]);
+  useEffect(()=>{const handler=()=>{if(status==="inbox")void load("inbox",query);};window.addEventListener("workbench-data-changed",handler);return()=>window.removeEventListener("workbench-data-changed",handler);},[status,query]);
   async function load(nextStatus=status,nextQuery=query){
     const data=await apiFetch<{items:InboxItem[]}>("/api/inbox?status="+encodeURIComponent(nextStatus)+"&q="+encodeURIComponent(nextQuery));
     setItems(data.items);
