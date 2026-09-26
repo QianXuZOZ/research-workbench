@@ -19,6 +19,7 @@ export function createQuickCapture(input: QuickCaptureInput) {
   const title = input.title.trim();
   const notes = input.notes?.trim() || null;
   const url = input.url?.trim() || null;
+  const context = [notes, url && input.type !== "literature" ? "来源：" + url : null].filter(Boolean).join("\n\n") || null;
 
   if (input.type === "inbox") {
     sqlite.prepare("INSERT INTO inbox_items (id,title,body,kind,source_url,status,created_at,updated_at) VALUES (?,?,?,?,?,'inbox',?,?)")
@@ -30,16 +31,16 @@ export function createQuickCapture(input: QuickCaptureInput) {
   if (input.type === "task") {
     sqlite.prepare(`INSERT INTO tasks (id,title,kind,status,priority,due_at,start_at,completed_at,progress,entity_type,entity_id,notes,created_at,updated_at)
       VALUES (?,?,'task','todo',?,?,NULL,NULL,0,NULL,NULL,?,?,?)`)
-      .run(id, title, input.priority ?? "medium", input.dueAt || null, notes, now, now);
-    updateSearchIndex("tasks", id, title, notes ?? "");
+      .run(id, title, input.priority ?? "medium", input.dueAt || null, context, now, now);
+    updateSearchIndex("tasks", id, title, context ?? "");
     logActivity("create", `快速新建任务：${title}`, "tasks", id);
     return { id, type: input.type };
   }
 
   if (input.type === "question") {
     sqlite.prepare(`INSERT INTO research_questions (id,title,project_id,status,context,success_criteria,keywords,notes,created_at,updated_at)
-      VALUES (?,? ,NULL,'open',?,NULL,NULL,NULL,?,?)`).run(id, title, notes, now, now);
-    updateSearchIndex("questions", id, title, notes ?? "");
+      VALUES (?,? ,NULL,'open',?,NULL,NULL,NULL,?,?)`).run(id, title, context, now, now);
+    updateSearchIndex("questions", id, title, context ?? "");
     logActivity("create", `快速记录研究问题：${title}`, "questions", id);
     return { id, type: input.type };
   }
@@ -47,7 +48,7 @@ export function createQuickCapture(input: QuickCaptureInput) {
   if (input.type === "finding") {
     sqlite.prepare(`INSERT INTO findings (id,title,project_id,experiment_id,run_id,status,claim,evidence,confidence,keywords,notes,created_at,updated_at)
       VALUES (?,? ,NULL,NULL,NULL,'candidate',?,NULL,50,NULL,NULL,?,?)`).run(id, title, notes, now, now);
-    updateSearchIndex("findings", id, title, notes ?? "");
+    updateSearchIndex("findings", id, title, context ?? "");
     logActivity("create", `快速记录研究发现：${title}`, "findings", id);
     return { id, type: input.type };
   }
