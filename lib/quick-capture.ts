@@ -47,7 +47,7 @@ export function createQuickCapture(input: QuickCaptureInput) {
 
   if (input.type === "finding") {
     sqlite.prepare(`INSERT INTO findings (id,title,project_id,experiment_id,run_id,status,claim,evidence,confidence,keywords,notes,created_at,updated_at)
-      VALUES (?,? ,NULL,NULL,NULL,'candidate',?,NULL,50,NULL,NULL,?,?)`).run(id, title, notes, now, now);
+      VALUES (?,? ,NULL,NULL,NULL,'candidate',?,NULL,50,NULL,NULL,?,?)`).run(id, title, context, now, now);
     updateSearchIndex("findings", id, title, context ?? "");
     logActivity("create", `快速记录研究发现：${title}`, "findings", id);
     return { id, type: input.type };
