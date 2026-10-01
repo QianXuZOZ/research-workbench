@@ -14,13 +14,15 @@ export type WeeklyReviewInput = z.infer<typeof weeklyReviewInputSchema>;
 export function saveWeeklyReview(raw: WeeklyReviewInput, actor: "web" | "mcp" = "web") {
   const data = weeklyReviewInputSchema.parse(raw);
   const now = nowIso();
-  const existing = sqlite.prepare("SELECT id FROM weekly_reviews WHERE period_start=?").get(data.periodStart) as {id:string} | undefined;
+  const existing = sqlite.prepare("SELECT * FROM weekly_reviews WHERE period_start=?").get(data.periodStart) as Record<string,unknown> | undefined;
 
   if (existing) {
+    const reflection = data.reflection === undefined ? (existing.reflection ?? null) : (data.reflection || null);
+    const nextFocus = data.nextFocus === undefined ? (existing.next_focus ?? null) : (data.nextFocus || null);
     sqlite.prepare("UPDATE weekly_reviews SET period_end=?,reflection=?,next_focus=?,updated_at=? WHERE id=?")
-      .run(data.periodEnd, data.reflection || null, data.nextFocus || null, now, existing.id);
+      .run(data.periodEnd, reflection, nextFocus, now, String(existing.id));
     logActivity("update", `${actor === "mcp" ? "MCP " : ""}更新周复盘：${data.periodStart}`, "reviews", existing.id);
-    return sqlite.prepare("SELECT * FROM weekly_reviews WHERE id=?").get(existing.id) as Record<string,unknown>;
+    return sqlite.prepare("SELECT * FROM weekly_reviews WHERE id=?").get(String(existing.id)) as Record<string,unknown>;
   }
 
   const id = crypto.randomUUID();
