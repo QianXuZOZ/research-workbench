@@ -13,18 +13,19 @@ export type QuickCaptureInput = {
   priority?: "low" | "medium" | "high" | "urgent";
 };
 
-export function createQuickCapture(input: QuickCaptureInput) {
+export function createQuickCapture(input: QuickCaptureInput, actor: "web" | "mcp" = "web") {
   const id = crypto.randomUUID();
   const now = nowIso();
   const title = input.title.trim();
   const notes = input.notes?.trim() || null;
   const url = input.url?.trim() || null;
   const context = [notes, url && input.type !== "literature" ? "来源：" + url : null].filter(Boolean).join("\n\n") || null;
+  const prefix = actor === "mcp" ? "MCP " : "";
 
   if (input.type === "inbox") {
     sqlite.prepare("INSERT INTO inbox_items (id,title,body,kind,source_url,status,created_at,updated_at) VALUES (?,?,?,?,?,'inbox',?,?)")
       .run(id, title, notes, url ? "link" : "note", url, now, now);
-    logActivity("create", `收集到 Inbox：${title}`, "inbox", id);
+    logActivity("create", `${prefix}收集到 Inbox：${title}`, "inbox", id);
     return { id, type: input.type };
   }
 
@@ -33,7 +34,7 @@ export function createQuickCapture(input: QuickCaptureInput) {
       VALUES (?,?,'task','todo',?,?,NULL,NULL,0,NULL,NULL,?,?,?)`)
       .run(id, title, input.priority ?? "medium", input.dueAt || null, context, now, now);
     updateSearchIndex("tasks", id, title, context ?? "");
-    logActivity("create", `快速新建任务：${title}`, "tasks", id);
+    logActivity("create", `${prefix}快速新建任务：${title}`, "tasks", id);
     return { id, type: input.type };
   }
 
@@ -41,7 +42,7 @@ export function createQuickCapture(input: QuickCaptureInput) {
     sqlite.prepare(`INSERT INTO research_questions (id,title,project_id,status,context,success_criteria,keywords,notes,created_at,updated_at)
       VALUES (?,? ,NULL,'open',?,NULL,NULL,NULL,?,?)`).run(id, title, context, now, now);
     updateSearchIndex("questions", id, title, context ?? "");
-    logActivity("create", `快速记录研究问题：${title}`, "questions", id);
+    logActivity("create", `${prefix}快速记录研究问题：${title}`, "questions", id);
     return { id, type: input.type };
   }
 
@@ -49,13 +50,13 @@ export function createQuickCapture(input: QuickCaptureInput) {
     sqlite.prepare(`INSERT INTO findings (id,title,project_id,experiment_id,run_id,status,claim,evidence,confidence,keywords,notes,created_at,updated_at)
       VALUES (?,? ,NULL,NULL,NULL,'candidate',?,NULL,50,NULL,NULL,?,?)`).run(id, title, context, now, now);
     updateSearchIndex("findings", id, title, context ?? "");
-    logActivity("create", `快速记录研究发现：${title}`, "findings", id);
+    logActivity("create", `${prefix}快速记录研究发现：${title}`, "findings", id);
     return { id, type: input.type };
   }
 
   sqlite.prepare(`INSERT INTO literature_items (id,title,authors,venue,venue_type,status,year,doi,url,abstract,keywords,notes,bibtex,created_at,updated_at)
     VALUES (?, ?,NULL,NULL,'other','unread',NULL,NULL,?,NULL,NULL,?,NULL,?,?)`).run(id, title, url, notes, now, now);
   updateSearchIndex("literature", id, title, [url, notes].filter(Boolean).join(" "));
-  logActivity("create", `快速记录文献：${title}`, "literature", id);
+  logActivity("create", `${prefix}快速记录文献：${title}`, "literature", id);
   return { id, type: input.type };
 }
