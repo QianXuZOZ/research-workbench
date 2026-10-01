@@ -46,6 +46,8 @@ describe("versioned backup export", () => {
     expect(data.tables.record_revisions).toEqual([]);
     expect(data.tables.inbox_items).toEqual([]);
     expect(data.tables.weekly_reviews).toEqual([]);
+    expect(data.tables.oauth_tokens).toBeUndefined();
+    expect(data.tables.oauth_authorization_codes).toBeUndefined();
     const dataEntry = manifest.files.find((item: { path: string }) => item.path === "data.json");
     expect(dataEntry.sha256).toBe(createHash("sha256").update(dataBuffer!).digest("hex"));
   });
