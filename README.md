@@ -143,16 +143,30 @@ The endpoint requires:
 Authorization: Bearer <MCP_ACCESS_TOKEN>
 ```
 
-The first MCP version exposes non-destructive and additive tools:
+MCP 3.0 exposes Research OS workflow tools while keeping the earlier record/task tools backward compatible:
 
-- `search_records` / `list_records` / `get_record` / `get_dashboard`
-- `list_tasks`
+**Read / context**
+- `search_workspace` — search records, tasks, Inbox items and weekly reviews.
+- `search_records` — backward-compatible alias of `search_workspace`.
+- `list_records` / `get_record` / `get_dashboard`
+- `get_focus` — today's overdue/active work, next-seven-day tasks, Inbox and stale projects.
+- `list_tasks` / `list_inbox`
+- `get_weekly_review` — current weekly review summary and saved notes.
+- `get_research_context` — one project's full Question → Hypothesis → Experiment → Run → Finding → Artifact context plus tasks and linked outputs.
+
+**Write / workflow**
+- `capture_item` — quick capture to Inbox, task, Research Question, Finding or Literature.
+- `process_inbox_item` — organize an Inbox item into the formal workflow.
+- `save_weekly_review` — create/update the current or specified weekly review.
 - `create_record` / `update_record`
 - `create_task` / `update_task`
+- `link_records`
+
+**Bulk**
+
 - `bulk_create_records` / `bulk_update_records`
 - `bulk_create_tasks` / `bulk_update_tasks`
 - `preview_bulk_operation` / `execute_bulk_operation`
-- `link_records`
 
 Delete, backup restore, password management, and other destructive operations are intentionally not exposed.
 
@@ -199,7 +213,7 @@ Project
 - **Finding**：从分析或实验中得到的、可复用的结论。
 - **Artifact**：MATLAB、PSCAD、数据集、图、文档、GitHub 仓库或外部文件路径。对于大文件，优先使用路径/仓库/URL 引用，而不是全部上传进容器。
 
-备份 schema v2 会包含上述科研过程表、版本历史与晋升证据。恢复逻辑仍兼容旧的 v1 完整备份。
+备份 schema v3 会包含科研过程、版本历史、晋升证据、Inbox 与周复盘数据。恢复逻辑仍兼容旧的 v1/v2 完整备份。
 
 
 ## GHCR 镜像发布与 1Panel 部署

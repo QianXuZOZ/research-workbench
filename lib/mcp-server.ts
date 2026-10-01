@@ -7,12 +7,21 @@ import { updateSearchIndex } from "@/lib/search";
 import { calendarDateInTimeZone, normalizeDoi, nowIso } from "@/lib/utils";
 import { logActivity } from "@/lib/activity";
 import { saveRevision } from "@/lib/revisions";
-import { getPromotionOverview } from "@/lib/promotion";
+import { getDashboardData } from "@/lib/dashboard-data";
+import { getFocusData, getWeeklyReviewData } from "@/lib/workflow-data";
+import { listInboxItems } from "@/lib/inbox-data";
+import { createQuickCapture } from "@/lib/quick-capture";
+import { inboxTargetSchema, processInboxItem } from "@/lib/inbox-workflow";
+import { saveWeeklyReview } from "@/lib/weekly-review";
+import { searchWorkspace } from "@/lib/workspace-search";
+import { getResearchContext } from "@/lib/research-context";
 
 const recordTypeSchema = z.enum(["projects", "papers", "literature", "questions", "hypotheses", "experiments", "runs", "findings", "artifacts", "patents", "growth"]);
 const taskStatusSchema = z.enum(["todo", "doing", "done", "blocked"]);
 const prioritySchema = z.enum(["low", "medium", "high", "urgent"]);
 const bulkOperationSchema = z.enum(["create_records", "update_records", "create_tasks", "update_tasks"]);
+const quickCaptureTypeSchema = z.enum(["inbox","task","question","finding","literature"]);
+const inboxStatusSchema = z.enum(["inbox","processed"]);
 
 function result(value: unknown) {
   return {
@@ -150,17 +159,23 @@ function executeBulk(operation: string, payload: Record<string, unknown>) {
 }
 
 export function buildResearchMcpServer() {
-  const server = new McpServer({ name: "research-workbench", version: "2.0.0" }, { capabilities: { tools: {} } });
+  const server = new McpServer({ name: "research-workbench", version: "3.0.0" }, { capabilities: { tools: {} } });
 
-  server.registerTool("search_records", {
-    description: "Search all research records and tasks by title or keyword.",
+  server.registerTool("search_workspace", {
+    description: "Search the whole research workspace, including records, tasks, Inbox items, and weekly reviews.",
     inputSchema: { query: z.string().trim().min(2).max(120), limit: z.number().int().min(1).max(50).default(20) },
     annotations: { readOnlyHint: true },
   }, async ({ query, limit }) => {
-    const terms = query.split(/\s+/).filter(Boolean); const hasShortTerm = terms.some((term) => Array.from(term).length < 3);
-    const items = hasShortTerm
-      ? sqlite.prepare("SELECT entity_type AS entityType,entity_id AS entityId,title,substr(body,1,300) AS snippet FROM search_index WHERE title LIKE ? OR body LIKE ? LIMIT ?").all(`%${query}%`, `%${query}%`, limit)
-      : sqlite.prepare("SELECT entity_type AS entityType,entity_id AS entityId,title,snippet(search_index,3,'','','…',24) AS snippet FROM search_index WHERE search_index MATCH ? LIMIT ?").all(terms.map((term) => `"${term.replaceAll('"', '""')}"*`).join(" AND "), limit);
+    const items = searchWorkspace(query, limit);
+    return result({ count: items.length, items });
+  });
+
+  server.registerTool("search_records", {
+    description: "Backward-compatible alias for search_workspace. Searches records, tasks, Inbox items, and weekly reviews.",
+    inputSchema: { query: z.string().trim().min(2).max(120), limit: z.number().int().min(1).max(50).default(20) },
+    annotations: { readOnlyHint: true },
+  }, async ({ query, limit }) => {
+    const items = searchWorkspace(query, limit);
     return result({ count: items.length, items });
   });
 
@@ -192,17 +207,41 @@ export function buildResearchMcpServer() {
   });
 
   server.registerTool("get_dashboard", {
-    description: "Get a compact dashboard summary for planning current research work.",
+    description: "Get the same dashboard summary used by the web overview.",
     inputSchema: {},
     annotations: { readOnlyHint: true },
-  }, async () => {
-    const timezone = process.env.APP_TIMEZONE ?? "Asia/Hong_Kong"; const today = calendarDateInTimeZone(new Date(), timezone);
-    const weekEnd = calendarDateInTimeZone(new Date(Date.now() + 7 * 86400_000), timezone);
-    const taskCounts = sqlite.prepare(`SELECT SUM(CASE WHEN status!='done' AND due_at<? THEN 1 ELSE 0 END) overdue,SUM(CASE WHEN status!='done' AND due_at>=? AND due_at<=? THEN 1 ELSE 0 END) dueWeek,SUM(CASE WHEN status='done' THEN 1 ELSE 0 END) done,COUNT(*) total FROM tasks WHERE archived_at IS NULL`).get(today, today, weekEnd);
-    const upcoming = sqlite.prepare("SELECT id,title,status,priority,due_at AS dueAt,entity_type AS entityType,entity_id AS entityId FROM tasks WHERE archived_at IS NULL AND status!='done' AND due_at IS NOT NULL AND due_at<=? ORDER BY due_at LIMIT 10").all(weekEnd);
-    const researchProcess = Object.fromEntries(["research_questions","hypotheses","experiments","experiment_runs","findings","artifacts"].map((table) => [table, (sqlite.prepare(`SELECT COUNT(*) count FROM ${table} WHERE archived_at IS NULL`).get() as { count: number }).count]));
-    return result({ today, weekEnd, taskCounts, upcoming, researchProcess, promotion: getPromotionOverview()[0] ?? null });
+  }, async () => result(getDashboardData()));
+
+  server.registerTool("get_focus", {
+    description: "Get today's research focus: overdue/active tasks, next-7-day tasks, pending Inbox items, and stale projects.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true },
+  }, async () => result(getFocusData()));
+
+  server.registerTool("list_inbox", {
+    description: "List Inbox items waiting to be organized or already processed.",
+    inputSchema: {
+      status: inboxStatusSchema.default("inbox"),
+      query: z.string().trim().max(120).default(""),
+      limit: z.number().int().min(1).max(200).default(100),
+    },
+    annotations: { readOnlyHint: true },
+  }, async ({ status, query, limit }) => {
+    const items = listInboxItems(status, query, limit);
+    return result({ count: items.length, items });
   });
+
+  server.registerTool("get_weekly_review", {
+    description: "Get the current week's automatic review summary, saved reflection, next-week focus, findings, completed tasks, and stale projects.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true },
+  }, async () => result(getWeeklyReviewData()));
+
+  server.registerTool("get_research_context", {
+    description: "Get one project's complete research context: questions, hypotheses, experiments, runs, findings, artifacts, tasks, semantic links, and linked papers/patents.",
+    inputSchema: { projectId: z.string().uuid() },
+    annotations: { readOnlyHint: true },
+  }, async ({ projectId }) => result(getResearchContext(projectId)));
 
   server.registerTool("list_tasks", {
     description: "List active tasks with optional status, parent record, and due-date filters.",
@@ -223,6 +262,51 @@ export function buildResearchMcpServer() {
   server.registerTool("update_record", { description: "Update one research record and preserve its previous version.", inputSchema: { type: recordTypeSchema, id: z.string().uuid(), patch: z.record(z.string(), z.unknown()) } }, async ({ type, id, patch }) => result({ item: updateRecord(type, id, patch) }));
   server.registerTool("create_task", { description: "Create one task or milestone.", inputSchema: taskInput.shape }, async (input) => result({ item: insertTask(input) }));
   server.registerTool("update_task", { description: "Update one task and preserve its previous version.", inputSchema: { id: z.string().uuid(), patch: z.record(z.string(), z.unknown()) } }, async ({ id, patch }) => result({ item: updateTask(id, patch) }));
+
+  server.registerTool("capture_item", {
+    description: "Quickly capture an Inbox item, task, research question, finding, or literature item using the same workflow as the web quick-capture dialog.",
+    inputSchema: {
+      type: quickCaptureTypeSchema,
+      title: z.string().trim().min(1).max(300),
+      notes: z.string().max(5000).nullable().optional(),
+      url: z.string().trim().max(2000).nullable().optional(),
+      dueAt: z.string().trim().max(40).nullable().optional(),
+      priority: prioritySchema.optional(),
+    },
+  }, async (input) => result({ created: createQuickCapture(input, "mcp") }));
+
+  server.registerTool("process_inbox_item", {
+    description: "Convert one pending Inbox item into a task, research question, finding, or literature item and mark the Inbox item processed.",
+    inputSchema: { id: z.string().uuid(), targetType: inboxTargetSchema },
+  }, async ({ id, targetType }) => {
+    try {
+      return result(processInboxItem(id, targetType, "mcp"));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      if (message === "INBOX_NOT_FOUND") throw new Error("Inbox item not found");
+      if (message === "ALREADY_PROCESSED") throw new Error("Inbox item is already processed");
+      throw error;
+    }
+  });
+
+  server.registerTool("save_weekly_review", {
+    description: "Create or update a weekly review. If period dates are omitted, saves to the current Monday-Sunday review period.",
+    inputSchema: {
+      periodStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      periodEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      reflection: z.string().max(10000).nullable().optional(),
+      nextFocus: z.string().max(10000).nullable().optional(),
+    },
+  }, async ({ periodStart, periodEnd, reflection, nextFocus }) => {
+    const current = getWeeklyReviewData();
+    const item = saveWeeklyReview({
+      periodStart: periodStart ?? current.start,
+      periodEnd: periodEnd ?? current.end,
+      reflection,
+      nextFocus,
+    }, "mcp");
+    return result({ item });
+  });
 
   server.registerTool("bulk_create_records", { description: "Atomically create up to 100 records of one type.", inputSchema: { type: recordTypeSchema, items: z.array(z.record(z.string(), z.unknown())).min(1).max(100) } }, async ({ type, items }) => {
     const validated = items.map((item) => prepareRecord(type, item)); return result({ items: sqlite.transaction(() => validated.map((item) => insertRecord(type, item)))() });
