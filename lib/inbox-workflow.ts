@@ -17,7 +17,7 @@ export function processInboxItem(id: string, targetType: InboxTarget, actor: "we
     title: String(item.title),
     notes: item.body ? String(item.body) : null,
     url: item.source_url ? String(item.source_url) : null,
-  });
+  }, actor);
   const now = nowIso();
   sqlite.prepare("UPDATE inbox_items SET status='processed',target_type=?,target_id=?,processed_at=?,updated_at=? WHERE id=?")
     .run(targetType, created.id, now, now, id);
