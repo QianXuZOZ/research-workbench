@@ -21,7 +21,7 @@ export function saveWeeklyReview(raw: WeeklyReviewInput, actor: "web" | "mcp" = 
     const nextFocus = data.nextFocus === undefined ? (existing.next_focus ?? null) : (data.nextFocus || null);
     sqlite.prepare("UPDATE weekly_reviews SET period_end=?,reflection=?,next_focus=?,updated_at=? WHERE id=?")
       .run(data.periodEnd, reflection, nextFocus, now, String(existing.id));
-    logActivity("update", `${actor === "mcp" ? "MCP " : ""}更新周复盘：${data.periodStart}`, "reviews", existing.id);
+    logActivity("update", `${actor === "mcp" ? "MCP " : ""}更新周复盘：${data.periodStart}`, "reviews", String(existing.id));
     return sqlite.prepare("SELECT * FROM weekly_reviews WHERE id=?").get(String(existing.id)) as Record<string,unknown>;
   }
 
