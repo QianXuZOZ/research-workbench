@@ -302,8 +302,8 @@ export function buildResearchMcpServer() {
     const item = saveWeeklyReview({
       periodStart: periodStart ?? current.start,
       periodEnd: periodEnd ?? current.end,
-      reflection: reflection ?? null,
-      nextFocus: nextFocus ?? null,
+      reflection,
+      nextFocus,
     }, "mcp");
     return result({ item });
   });
