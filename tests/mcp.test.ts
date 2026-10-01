@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import { authorizeMcpRequest } from "@/lib/mcp-auth";
 
 describe("MCP bearer authentication", () => {
-  it("rejects requests when MCP is not configured", () => {
+  it("rejects requests without a bearer token", () => {
     const previous = process.env.MCP_ACCESS_TOKEN;
     delete process.env.MCP_ACCESS_TOKEN;
     const result = authorizeMcpRequest(new Request("https://example.test/mcp"));
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.response.status).toBe(503);
+    if (!result.ok) expect(result.response.status).toBe(401);
     process.env.MCP_ACCESS_TOKEN = previous;
   });
 
