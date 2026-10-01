@@ -173,8 +173,7 @@ export function buildResearchMcpServer() {
       nickname: z.string().optional(),
     },
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
-    securitySchemes: readSecuritySchemes,
-    _meta: { "openai/profile": true },
+    _meta: { "openai/profile": true, securitySchemes: readSecuritySchemes },
   }, async () => {
     const admin = sqlite.prepare("SELECT id,email FROM admins LIMIT 1").get() as { id: string; email: string } | undefined;
     if (!admin) throw new Error("Administrator profile is not configured");
@@ -192,7 +191,7 @@ export function buildResearchMcpServer() {
     description: "Search the whole research workspace, including records, tasks, Inbox items, and weekly reviews.",
     inputSchema: { query: z.string().trim().min(2).max(120), limit: z.number().int().min(1).max(50).default(20) },
     annotations: { readOnlyHint: true },
-    securitySchemes: readSecuritySchemes,
+    _meta: { securitySchemes: readSecuritySchemes },
   }, async ({ query, limit }) => {
     const items = searchWorkspace(query, limit);
     return result({ count: items.length, items });
@@ -202,7 +201,7 @@ export function buildResearchMcpServer() {
     description: "Backward-compatible alias for search_workspace. Searches records, tasks, Inbox items, and weekly reviews.",
     inputSchema: { query: z.string().trim().min(2).max(120), limit: z.number().int().min(1).max(50).default(20) },
     annotations: { readOnlyHint: true },
-    securitySchemes: readSecuritySchemes,
+    _meta: { securitySchemes: readSecuritySchemes },
   }, async ({ query, limit }) => {
     const items = searchWorkspace(query, limit);
     return result({ count: items.length, items });
@@ -212,7 +211,7 @@ export function buildResearchMcpServer() {
     description: "List records of one research type with optional status and text filters.",
     inputSchema: { type: recordTypeSchema, status: z.string().optional(), query: z.string().optional(), limit: z.number().int().min(1).max(200).default(100) },
     annotations: { readOnlyHint: true },
-    securitySchemes: readSecuritySchemes,
+    _meta: { securitySchemes: readSecuritySchemes },
   }, async ({ type, status, query, limit }) => {
     const where = ["archived_at IS NULL"]; const values: unknown[] = [];
     if (status && type !== "artifacts") { where.push("status=?"); values.push(status); }
@@ -226,7 +225,7 @@ export function buildResearchMcpServer() {
     description: "Get one record with tasks, attachments metadata, links, and recent revisions.",
     inputSchema: { type: recordTypeSchema, id: z.string().uuid() },
     annotations: { readOnlyHint: true },
-    securitySchemes: readSecuritySchemes,
+    _meta: { securitySchemes: readSecuritySchemes },
   }, async ({ type, id }) => {
     const row = sqlite.prepare(`SELECT * FROM ${recordTables[type]} WHERE id=?`).get(id) as Record<string, unknown> | undefined;
     if (!row) throw new Error("Record not found");
@@ -241,14 +240,14 @@ export function buildResearchMcpServer() {
     description: "Get the same dashboard summary used by the web overview.",
     inputSchema: {},
     annotations: { readOnlyHint: true },
-    securitySchemes: readSecuritySchemes,
+    _meta: { securitySchemes: readSecuritySchemes },
   }, async () => result(getDashboardData()));
 
   server.registerTool("get_focus", {
     description: "Get today's research focus: overdue/active tasks, next-7-day tasks, pending Inbox items, and stale projects.",
     inputSchema: {},
     annotations: { readOnlyHint: true },
-    securitySchemes: readSecuritySchemes,
+    _meta: { securitySchemes: readSecuritySchemes },
   }, async () => result(getFocusData()));
 
   server.registerTool("list_inbox", {
@@ -259,7 +258,7 @@ export function buildResearchMcpServer() {
       limit: z.number().int().min(1).max(200).default(100),
     },
     annotations: { readOnlyHint: true },
-    securitySchemes: readSecuritySchemes,
+    _meta: { securitySchemes: readSecuritySchemes },
   }, async ({ status, query, limit }) => {
     const items = listInboxItems(status, query, limit);
     return result({ count: items.length, items });
@@ -269,21 +268,21 @@ export function buildResearchMcpServer() {
     description: "Get the current week's automatic review summary, saved reflection, next-week focus, findings, completed tasks, and stale projects.",
     inputSchema: {},
     annotations: { readOnlyHint: true },
-    securitySchemes: readSecuritySchemes,
+    _meta: { securitySchemes: readSecuritySchemes },
   }, async () => result(getWeeklyReviewData()));
 
   server.registerTool("get_research_context", {
     description: "Get one project's complete research context: questions, hypotheses, experiments, runs, findings, artifacts, tasks, semantic links, and linked papers/patents.",
     inputSchema: { projectId: z.string().uuid() },
     annotations: { readOnlyHint: true },
-    securitySchemes: readSecuritySchemes,
+    _meta: { securitySchemes: readSecuritySchemes },
   }, async ({ projectId }) => result(getResearchContext(projectId)));
 
   server.registerTool("list_tasks", {
     description: "List active tasks with optional status, parent record, and due-date filters.",
     inputSchema: { status: taskStatusSchema.optional(), entityType: z.string().max(30).optional(), entityId: z.string().uuid().optional(), dueBefore: z.string().optional(), limit: z.number().int().min(1).max(200).default(100) },
     annotations: { readOnlyHint: true },
-    securitySchemes: readSecuritySchemes,
+    _meta: { securitySchemes: readSecuritySchemes },
   }, async ({ status, entityType, entityId, dueBefore, limit }) => {
     const where = ["archived_at IS NULL"]; const values: unknown[] = [];
     if (status) { where.push("status=?"); values.push(status); }
@@ -310,13 +309,13 @@ export function buildResearchMcpServer() {
       dueAt: z.string().trim().max(40).nullable().optional(),
       priority: prioritySchema.optional(),
     },
-    securitySchemes: writeSecuritySchemes,
+    _meta: { securitySchemes: writeSecuritySchemes },
   }, async (input) => result({ created: createQuickCapture(input, "mcp") }));
 
   server.registerTool("process_inbox_item", {
     description: "Convert one pending Inbox item into a task, research question, finding, or literature item and mark the Inbox item processed.",
     inputSchema: { id: z.string().uuid(), targetType: inboxTargetSchema },
-    securitySchemes: writeSecuritySchemes,
+    _meta: { securitySchemes: writeSecuritySchemes },
   }, async ({ id, targetType }) => {
     try {
       return result(processInboxItem(id, targetType, "mcp"));
@@ -336,7 +335,7 @@ export function buildResearchMcpServer() {
       reflection: z.string().max(10000).nullable().optional(),
       nextFocus: z.string().max(10000).nullable().optional(),
     },
-    securitySchemes: writeSecuritySchemes,
+    _meta: { securitySchemes: writeSecuritySchemes },
   }, async ({ periodStart, periodEnd, reflection, nextFocus }) => {
     const current = getWeeklyReviewData();
     const item = saveWeeklyReview({
@@ -358,7 +357,7 @@ export function buildResearchMcpServer() {
   server.registerTool("preview_bulk_operation", {
     description: "Validate a batch write and return a signed preview token. Use this before execute_bulk_operation for AI-assisted batch changes.",
     inputSchema: { operation: bulkOperationSchema, type: recordTypeSchema.optional(), items: z.array(z.record(z.string(), z.unknown())).min(1).max(100) },
-    securitySchemes: writeSecuritySchemes,
+    _meta: { securitySchemes: writeSecuritySchemes },
   }, async ({ operation, type, items }) => {
     const payload: Record<string, unknown> = { items, ...(type ? { type } : {}) };
     if ((operation === "create_records" || operation === "update_records") && !type) throw new Error("type is required for record operations");
@@ -373,7 +372,7 @@ export function buildResearchMcpServer() {
   server.registerTool("execute_bulk_operation", {
     description: "Execute a previously previewed signed batch operation.",
     inputSchema: { previewToken: z.string().min(20) },
-    securitySchemes: writeSecuritySchemes,
+    _meta: { securitySchemes: writeSecuritySchemes },
   }, async ({ previewToken }) => {
     const preview = readPreviewToken(previewToken); return result({ operation: preview.operation, ...executeBulk(preview.operation, preview.payload) });
   });
@@ -381,7 +380,7 @@ export function buildResearchMcpServer() {
   server.registerTool("link_records", {
     description: "Create a semantic link between two existing records or tasks.",
     inputSchema: { sourceType: z.string().max(30), sourceId: z.string().uuid(), targetType: z.string().max(30), targetId: z.string().uuid(), relation: z.string().trim().min(1).max(60).default("related") },
-    securitySchemes: writeSecuritySchemes,
+    _meta: { securitySchemes: writeSecuritySchemes },
   }, async ({ sourceType, sourceId, targetType, targetId, relation }) => {
     if (sourceType === targetType && sourceId === targetId) throw new Error("A record cannot link to itself");
     if (!recordExists(sourceType, sourceId) || !recordExists(targetType, targetId)) throw new Error("Source or target record does not exist");
