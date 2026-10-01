@@ -131,13 +131,32 @@ ALLOW_SAMPLE_DATA=true npm run db:seed
 
 Research Workbench exposes a remote MCP endpoint at `/mcp` for trusted AI clients such as Codex.
 
-Set a strong token in the deployment environment:
+Research Workbench supports two authentication paths on the same `/mcp` endpoint:
+
+- **Codex / trusted local clients**: static `MCP_ACCESS_TOKEN`.
+- **ChatGPT Web**: OAuth 2.1 Authorization Code + PKCE (S256), with rotating refresh tokens.
+
+Set both the static token and the public HTTPS origin:
 
 ```dotenv
 MCP_ACCESS_TOKEN=use-a-random-secret-with-at-least-32-characters
+MCP_PUBLIC_ORIGIN=https://research.example.com
 ```
 
-The endpoint requires:
+`MCP_PUBLIC_ORIGIN` must be the public HTTPS origin only (no path). If omitted, the server falls back to `TRUSTED_ORIGIN`.
+
+OAuth discovery endpoints:
+
+```text
+GET /.well-known/oauth-protected-resource
+GET /.well-known/oauth-authorization-server
+GET /oauth/authorize
+POST /oauth/token
+```
+
+The OAuth implementation supports ChatGPT Client ID Metadata Documents (CIMD), RFC 9207 issuer identification, PKCE S256, the MCP `resource` parameter, 1-hour access tokens, and rotating 30-day refresh tokens. OAuth token hashes are stored in SQLite and are intentionally excluded from Workbench ZIP backups.
+
+Static-token clients continue to send:
 
 ```http
 Authorization: Bearer <MCP_ACCESS_TOKEN>
@@ -191,6 +210,22 @@ bearer_token_env_var = "RESEARCH_WORKBENCH_MCP_TOKEN"
 ```
 
 Keep `/mcp` behind the same HTTPS reverse proxy as the main application. No inbound port needs to be opened on the computer running Codex.
+
+### ChatGPT Web
+
+After deploying the OAuth-enabled version, create a custom MCP app in ChatGPT developer mode:
+
+1. Open **Settings / Workspace Settings → Apps → Create**.
+2. Set the MCP endpoint to `https://research.example.com/mcp`.
+3. Choose **OAuth** authentication.
+4. Click **Scan Tools**.
+5. ChatGPT opens the Workbench login page. Sign in with the existing Workbench administrator account.
+6. Review the requested `workbench.read` / `workbench.write` permissions and click **允许连接**.
+7. After the OAuth redirect finishes, wait for tool scanning to complete and create/enable the app.
+
+The server validates ChatGPT's CIMD metadata and callback URI. With issuer identification enabled, ChatGPT can use the stable client ID `https://chatgpt.com/oauth/client.json` and stable callback `https://chatgpt.com/connector_platform_oauth_redirect`.
+
+The MCP also exposes `get_profile`, marked as the authenticated OpenAI profile tool, so ChatGPT can consistently label this connected Workbench account.
 
 
 
@@ -265,6 +300,7 @@ services:
       COOKIE_SECURE: "true"
       TRUSTED_ORIGIN: "https://research.example.com"
       MCP_ACCESS_TOKEN: "replace-with-at-least-32-random-characters"
+      MCP_PUBLIC_ORIGIN: "https://research.example.com"
 
     volumes:
       - ./data:/data
