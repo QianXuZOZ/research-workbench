@@ -1,5 +1,5 @@
 import { createMcpHandler } from "@modelcontextprotocol/server";
-import { authorizeMcpRequest } from "@/lib/mcp-auth";
+import { authorizeMcpRequest, requiredScopeForMcpRequest } from "@/lib/mcp-auth";
 import { buildResearchMcpServer } from "@/lib/mcp-server";
 
 export const runtime = "nodejs";
@@ -8,7 +8,8 @@ export const dynamic = "force-dynamic";
 const handler = createMcpHandler(buildResearchMcpServer);
 
 async function serve(request: Request) {
-  const auth = authorizeMcpRequest(request);
+  const requiredScope = await requiredScopeForMcpRequest(request);
+  const auth = authorizeMcpRequest(request, requiredScope);
   if (!auth.ok) return auth.response;
   return handler.fetch(request);
 }
