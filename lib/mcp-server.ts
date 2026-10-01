@@ -173,7 +173,7 @@ export function buildResearchMcpServer() {
       nickname: z.string().optional(),
     },
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
-    _meta: { "openai/profile": true, securitySchemes: readSecuritySchemes },
+    _meta: { "openai/profile": true, _meta: { securitySchemes: readSecuritySchemes } },
   }, async () => {
     const admin = sqlite.prepare("SELECT id,email FROM admins LIMIT 1").get() as { id: string; email: string } | undefined;
     if (!admin) throw new Error("Administrator profile is not configured");
@@ -294,10 +294,10 @@ export function buildResearchMcpServer() {
     return result({ count: items.length, items });
   });
 
-  server.registerTool("create_record", { description: "Create one research record.", inputSchema: { type: recordTypeSchema, data: z.record(z.string(), z.unknown()) }, securitySchemes: writeSecuritySchemes }, async ({ type, data }) => result({ item: insertRecord(type, prepareRecord(type, data)) }));
-  server.registerTool("update_record", { description: "Update one research record and preserve its previous version.", inputSchema: { type: recordTypeSchema, id: z.string().uuid(), patch: z.record(z.string(), z.unknown()) }, securitySchemes: writeSecuritySchemes }, async ({ type, id, patch }) => result({ item: updateRecord(type, id, patch) }));
-  server.registerTool("create_task", { description: "Create one task or milestone.", inputSchema: taskInput.shape, securitySchemes: writeSecuritySchemes }, async (input) => result({ item: insertTask(input) }));
-  server.registerTool("update_task", { description: "Update one task and preserve its previous version.", inputSchema: { id: z.string().uuid(), patch: z.record(z.string(), z.unknown()) }, securitySchemes: writeSecuritySchemes }, async ({ id, patch }) => result({ item: updateTask(id, patch) }));
+  server.registerTool("create_record", { description: "Create one research record.", inputSchema: { type: recordTypeSchema, data: z.record(z.string(), z.unknown()) }, _meta: { securitySchemes: writeSecuritySchemes } }, async ({ type, data }) => result({ item: insertRecord(type, prepareRecord(type, data)) }));
+  server.registerTool("update_record", { description: "Update one research record and preserve its previous version.", inputSchema: { type: recordTypeSchema, id: z.string().uuid(), patch: z.record(z.string(), z.unknown()) }, _meta: { securitySchemes: writeSecuritySchemes } }, async ({ type, id, patch }) => result({ item: updateRecord(type, id, patch) }));
+  server.registerTool("create_task", { description: "Create one task or milestone.", inputSchema: taskInput.shape, _meta: { securitySchemes: writeSecuritySchemes } }, async (input) => result({ item: insertTask(input) }));
+  server.registerTool("update_task", { description: "Update one task and preserve its previous version.", inputSchema: { id: z.string().uuid(), patch: z.record(z.string(), z.unknown()) }, _meta: { securitySchemes: writeSecuritySchemes } }, async ({ id, patch }) => result({ item: updateTask(id, patch) }));
 
   server.registerTool("capture_item", {
     description: "Quickly capture an Inbox item, task, research question, finding, or literature item using the same workflow as the web quick-capture dialog.",
@@ -347,12 +347,12 @@ export function buildResearchMcpServer() {
     return result({ item });
   });
 
-  server.registerTool("bulk_create_records", { description: "Atomically create up to 100 records of one type.", inputSchema: { type: recordTypeSchema, items: z.array(z.record(z.string(), z.unknown())).min(1).max(100) }, securitySchemes: writeSecuritySchemes }, async ({ type, items }) => {
+  server.registerTool("bulk_create_records", { description: "Atomically create up to 100 records of one type.", inputSchema: { type: recordTypeSchema, items: z.array(z.record(z.string(), z.unknown())).min(1).max(100) }, _meta: { securitySchemes: writeSecuritySchemes } }, async ({ type, items }) => {
     const validated = items.map((item) => prepareRecord(type, item)); return result({ items: sqlite.transaction(() => validated.map((item) => insertRecord(type, item)))() });
   });
-  server.registerTool("bulk_update_records", { description: "Atomically update up to 100 records.", inputSchema: { type: recordTypeSchema, items: z.array(z.object({ id: z.string().uuid(), patch: z.record(z.string(), z.unknown()) })).min(1).max(100) }, securitySchemes: writeSecuritySchemes }, async ({ type, items }) => result({ items: sqlite.transaction(() => items.map((item) => updateRecord(type, item.id, item.patch)))() }));
-  server.registerTool("bulk_create_tasks", { description: "Atomically create up to 100 tasks.", inputSchema: { items: z.array(taskInput).min(1).max(100) }, securitySchemes: writeSecuritySchemes }, async ({ items }) => result({ items: sqlite.transaction(() => items.map(insertTask))() }));
-  server.registerTool("bulk_update_tasks", { description: "Atomically update up to 100 tasks.", inputSchema: { items: z.array(z.object({ id: z.string().uuid(), patch: z.record(z.string(), z.unknown()) })).min(1).max(100) }, securitySchemes: writeSecuritySchemes }, async ({ items }) => result({ items: sqlite.transaction(() => items.map((item) => updateTask(item.id, item.patch)))() }));
+  server.registerTool("bulk_update_records", { description: "Atomically update up to 100 records.", inputSchema: { type: recordTypeSchema, items: z.array(z.object({ id: z.string().uuid(), patch: z.record(z.string(), z.unknown()) })).min(1).max(100) }, _meta: { securitySchemes: writeSecuritySchemes } }, async ({ type, items }) => result({ items: sqlite.transaction(() => items.map((item) => updateRecord(type, item.id, item.patch)))() }));
+  server.registerTool("bulk_create_tasks", { description: "Atomically create up to 100 tasks.", inputSchema: { items: z.array(taskInput).min(1).max(100) }, _meta: { securitySchemes: writeSecuritySchemes } }, async ({ items }) => result({ items: sqlite.transaction(() => items.map(insertTask))() }));
+  server.registerTool("bulk_update_tasks", { description: "Atomically update up to 100 tasks.", inputSchema: { items: z.array(z.object({ id: z.string().uuid(), patch: z.record(z.string(), z.unknown()) })).min(1).max(100) }, _meta: { securitySchemes: writeSecuritySchemes } }, async ({ items }) => result({ items: sqlite.transaction(() => items.map((item) => updateTask(item.id, item.patch)))() }));
 
   server.registerTool("preview_bulk_operation", {
     description: "Validate a batch write and return a signed preview token. Use this before execute_bulk_operation for AI-assisted batch changes.",
