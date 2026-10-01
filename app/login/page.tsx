@@ -9,6 +9,13 @@ export function generateMetadata(): Metadata {
   return { title: workbenchName };
 }
 
-export default function LoginPage() {
-  return <LoginView workbenchName={getWorkbenchName()} />;
+function safeNext(value: string | string[] | undefined) {
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
+  return raw;
+}
+
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string | string[] }> }) {
+  const params = await searchParams;
+  return <LoginView workbenchName={getWorkbenchName()} nextPath={safeNext(params.next)} />;
 }

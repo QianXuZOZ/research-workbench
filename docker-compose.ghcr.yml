@@ -19,6 +19,7 @@ services:
       COOKIE_SECURE: "true"
       TRUSTED_ORIGIN: https://research.example.com
       MCP_ACCESS_TOKEN: replace-with-at-least-32-random-characters
+      MCP_PUBLIC_ORIGIN: https://research.example.com
 
     volumes:
       - ./data:/data

@@ -561,3 +561,18 @@ input[type="checkbox"] { width: 17px; height: 17px; min-height: auto; accent-col
   .focus-panel,.review-panel,.review-write,.review-activity { padding: 14px; }
   .review-metrics > div { min-height: 76px; padding: 10px; }
 }
+
+
+/* MCP OAuth consent */
+.oauth-page { min-height: 100vh; padding: 36px 18px; display: grid; place-items: center; background: var(--paper); }
+.oauth-card { width: min(560px, 100%); padding: 26px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); box-shadow: 0 24px 70px rgba(0,0,0,.12); }
+.oauth-card-head { display: flex; align-items: center; gap: 11px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+.oauth-card-head > span { width: 42px; height: 42px; display: grid; place-items: center; color: var(--cyan); border-radius: 12px; background: var(--cyan-soft); }
+.oauth-card-head > div { display: flex; flex-direction: column; }.oauth-card-head strong { font-size: 14px; }.oauth-card-head small { color: var(--ink-3); font-size: 10px; }
+.oauth-copy { padding: 22px 0 14px; }.oauth-copy h1 { margin: 0 0 7px; font-size: 22px; }.oauth-copy p { margin: 0; color: var(--ink-2); font-size: 11px; line-height: 1.65; }
+.oauth-account { margin: 3px 0 16px; padding: 11px 13px; display: flex; justify-content: space-between; gap: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); }.oauth-account span { color: var(--ink-3); font-size: 10px; }.oauth-account strong { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.oauth-permissions { padding: 14px; border: 1px solid var(--line); border-radius: 11px; }.oauth-permissions > strong { display: block; margin-bottom: 9px; font-size: 11px; }.oauth-permissions > div { min-height: 34px; display: flex; align-items: center; gap: 8px; color: var(--ink-2); border-top: 1px solid var(--line); font-size: 10px; }.oauth-permissions > div:first-of-type { border-top: 0; }.oauth-permissions svg { flex: 0 0 auto; color: var(--success); }
+.oauth-note { margin: 13px 2px 18px; color: var(--ink-3); font-size: 9px; line-height: 1.6; }
+.oauth-actions { display: flex; justify-content: flex-end; gap: 8px; }.oauth-actions .button { min-width: 100px; }
+.oauth-error-card { text-align: center; }.oauth-error-card > svg { color: var(--danger); }.oauth-error-card h1 { margin: 12px 0 5px; font-size: 19px; }.oauth-error-card p { margin: 0; color: var(--ink-3); font-size: 11px; }
+@media (max-width: 560px) { .oauth-page { padding: 0; align-items: stretch; }.oauth-card { width: 100%; min-height: 100vh; padding: 22px 17px; border: 0; border-radius: 0; }.oauth-actions { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; }.oauth-actions .button { width: 100%; } }

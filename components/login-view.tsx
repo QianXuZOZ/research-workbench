@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Activity, ArrowRight, LockKeyhole, Mail, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export function LoginView({ workbenchName }: { workbenchName: string }) {
+export function LoginView({ workbenchName, nextPath }: { workbenchName: string; nextPath?: string | null }) {
   const router = useRouter();
   const [email, setEmail] = useState(""); const [password, setPassword] = useState(""); const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
   async function submit(event: React.FormEvent) {
@@ -12,7 +12,7 @@ export function LoginView({ workbenchName }: { workbenchName: string }) {
     const response = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
     const payload = await response.json().catch(() => null);
     if (!response.ok) { setError(payload?.error?.message ?? "登录失败，请重试"); setBusy(false); return; }
-    router.replace("/dashboard"); router.refresh();
+    router.replace(nextPath || "/dashboard"); router.refresh();
   }
   return (
     <main className="login-page">
