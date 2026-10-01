@@ -32,6 +32,41 @@ export const loginAttempts = sqliteTable("login_attempts", {
   updatedAt: text("updated_at").notNull(),
 });
 
+
+export const oauthAuthorizationCodes = sqliteTable("oauth_authorization_codes", {
+  id: text("id").primaryKey(),
+  adminId: text("admin_id").notNull().references(() => admins.id, { onDelete: "cascade" }),
+  codeHash: text("code_hash").notNull(),
+  clientId: text("client_id").notNull(),
+  redirectUri: text("redirect_uri").notNull(),
+  codeChallenge: text("code_challenge").notNull(),
+  resource: text("resource").notNull(),
+  scope: text("scope").notNull(),
+  expiresAt: text("expires_at").notNull(),
+  usedAt: text("used_at"),
+  createdAt: text("created_at").notNull(),
+}, (table) => [uniqueIndex("idx_oauth_codes_hash").on(table.codeHash), index("idx_oauth_codes_expires").on(table.expiresAt)]);
+
+export const oauthTokens = sqliteTable("oauth_tokens", {
+  id: text("id").primaryKey(),
+  adminId: text("admin_id").notNull().references(() => admins.id, { onDelete: "cascade" }),
+  clientId: text("client_id").notNull(),
+  resource: text("resource").notNull(),
+  scope: text("scope").notNull(),
+  accessTokenHash: text("access_token_hash").notNull(),
+  refreshTokenHash: text("refresh_token_hash").notNull(),
+  accessExpiresAt: text("access_expires_at").notNull(),
+  refreshExpiresAt: text("refresh_expires_at").notNull(),
+  revokedAt: text("revoked_at"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+}, (table) => [
+  uniqueIndex("idx_oauth_access_hash").on(table.accessTokenHash),
+  uniqueIndex("idx_oauth_refresh_hash").on(table.refreshTokenHash),
+  index("idx_oauth_tokens_admin").on(table.adminId),
+  index("idx_oauth_tokens_refresh_expires").on(table.refreshExpiresAt),
+]);
+
 export const projects = sqliteTable("projects", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
