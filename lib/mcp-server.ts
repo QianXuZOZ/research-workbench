@@ -273,7 +273,7 @@ export function buildResearchMcpServer() {
       dueAt: z.string().trim().max(40).nullable().optional(),
       priority: prioritySchema.optional(),
     },
-  }, async (input) => result({ created: createQuickCapture(input) }));
+  }, async (input) => result({ created: createQuickCapture(input, "mcp") }));
 
   server.registerTool("process_inbox_item", {
     description: "Convert one pending Inbox item into a task, research question, finding, or literature item and mark the Inbox item processed.",
